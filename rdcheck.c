@@ -62,19 +62,49 @@ void advance() {
     tok = yylex();
     printf("[+]read tok: %s\n", yytext);
 }
+
+/*function define part begin*/
+int analyse_block();
+int analyse_blockitems();
+int analyse_blockitem();
+/*function define part end*/
+
 /*
  * Block: Y_LBRACKET BlockItems Y_RBRACKET
          | Y_LBRACKET Y_RBRACKET
  */
-void analyse_block() {
+int analyse_block() {
     if(tok != Y_LBRACKET) {
         printf("ERROR:Expect an LBRACKET.\n");
+        return 0;
     }
     advance();
-    if(tok == Y_RBRACKET) {
-        
+    int flag = analyse_blockitems();
+    if(flag) {
+        advance();
+        if (tok != Y_RBRACKET) {
+            printf("ERROR:EXpect an RBRACKET.\n");
+            return 0;
+        }
+    } else {
+        advance();
+        if (tok != Y_RBRACKET) {
+            printf("ERROR:EXpect an RBRACKET.\n");
+            return 0;
+        }
     }
+    return 1;
 }
+/*
+ *  BlockItems: BlockItem
+              | BlockItem BlockItems
+ */
+int analyse_blockitems() {
+    analyse_blockitem();
+    advance();
+    return 1;
+}
+/*main function*/
 int main(int argc, char **argv)
 {
     while(1)
