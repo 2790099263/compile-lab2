@@ -2046,15 +2046,10 @@ void yyfree (void * ptr )
 
 #line 103 "scan.l"
 
-
-int main(int argc, char **argv)
-{
-	int tok;
-
-	while(tok = yylex()) 
-	{
-		if(tok != 1)
-			printf("%d	%s\n",tok,yytext);
-
-	}
+int yywrap() {
+	return 1;
+}
+int yyback(int n) {
+	yyless(n);
+	return 1;
 }

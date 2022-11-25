@@ -101,15 +101,10 @@ WHITE_SPACE	[ \t\n\r]+
 {WHITE_SPACE}	{return 1;}
 .	{printf("Error: 404 Not Found\n"); return 404;}
 %%
-
-int main(int argc, char **argv)
-{
-	int tok;
-
-	while(tok = yylex()) 
-	{
-		if(tok != 1)
-			printf("%d	%s\n",tok,yytext);
-
-	}
+int yywrap() {
+	return 1;
+}
+int yyback(int n) {
+	yyless(n);
+	return 1;
 }

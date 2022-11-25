@@ -10,8 +10,11 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="099b9fd6-ed75-4f0b-b254-0a22edd64315" name="Changes" comment="[.idea]project init files">
-      <change afterPath="$PROJECT_DIR$/rdcheck.c" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/rdcheck" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lex.yy.c" beforeDir="false" afterPath="$PROJECT_DIR$/lex.yy.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/rdcheck.c" beforeDir="false" afterPath="$PROJECT_DIR$/rdcheck.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/scan.l" beforeDir="false" afterPath="$PROJECT_DIR$/scan.l" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -66,6 +69,7 @@
       <workItem from="1668737509209" duration="4490000" />
       <workItem from="1669019159456" duration="21000" />
       <workItem from="1669046696209" duration="2163000" />
+      <workItem from="1669188596545" duration="8000" />
     </task>
     <task id="LOCAL-00001" summary="[up]update README">
       <created>1668737572293</created>

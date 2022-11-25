@@ -55,18 +55,18 @@ enum yytokentype {
 };
 extern int yylex();
 extern int yylval;
+extern FILE* yyin;
 extern char* yytext;
 
 int tok;
 void advance() {
     tok = yylex();
-    printf("[+]read tok: %s\n", yytext);
+    printf("[+]advanced tok: %s\n", yytext);
 }
-
 /*function define part begin*/
 int analyse_block();
 int analyse_blockitems();
-int analyse_blockitem();
+// int analyse_blockitem();
 /*function define part end*/
 
 /*
@@ -79,20 +79,6 @@ int analyse_block() {
         return 0;
     }
     advance();
-    int flag = analyse_blockitems();
-    if(flag) {
-        advance();
-        if (tok != Y_RBRACKET) {
-            printf("ERROR:EXpect an RBRACKET.\n");
-            return 0;
-        }
-    } else {
-        advance();
-        if (tok != Y_RBRACKET) {
-            printf("ERROR:EXpect an RBRACKET.\n");
-            return 0;
-        }
-    }
     return 1;
 }
 /*
@@ -100,22 +86,18 @@ int analyse_block() {
               | BlockItem BlockItems
  */
 int analyse_blockitems() {
-    analyse_blockitem();
+    // analyse_blockitem();
     advance();
     return 1;
 }
 /*main function*/
 int main(int argc, char **argv)
 {
+    int now = 0;
     while(1)
     {
-        printf("input expression, 'q' to exit>");
-        advance();
-        int r = expr();
-        printf("result: %d\n", r);
-
-        //past rr = astExpr();
-        //showAst(rr, 0);
+        advance();now++;
+        advance();now++;
     }
     return 0;
 }
