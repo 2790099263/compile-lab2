@@ -55,7 +55,6 @@ enum yytokentype {
 };
 extern int yylex();
 extern int yylval;
-extern FILE* yyin;
 extern char* yytext;
 
 int tok;
@@ -96,8 +95,7 @@ int main(int argc, char **argv)
     int now = 0;
     while(1)
     {
-        advance();now++;
-        advance();now++;
+        advance();
     }
     return 0;
 }
