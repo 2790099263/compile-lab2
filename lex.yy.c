@@ -2046,6 +2046,8 @@ void yyfree (void * ptr )
 
 #line 103 "scan.l"
 
-int yywrap() {
-	return 1;
+int yyerror(char *s)
+{
+	fprintf(stderr, "error: %s\n", s);
+	return 0;
 }
