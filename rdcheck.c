@@ -9,6 +9,38 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+/*Linked List part begin*/
+
+typedef struct list_node
+{
+    /* data */
+    int val;
+    struct list *lst;
+    struct list *nxt;
+}list;
+list* listInit(list *lst_node){
+    list *l;
+    l=(list*)malloc(sizeof(list));
+    if(l==NULL){
+        printf("ERROR! NO MEMORY!\n");
+        exit(0);
+    }
+    l->nxt=NULL;
+    l->lst=lst_node;
+    return l;
+}
+void listPush(int v,list *now){
+    list *nx;
+    list *po=now;
+    while(po->nxt!=NULL)po=po->nxt;
+    nx = listInit(po);
+    nx->val=v;
+    nx->lst=po;
+    po->nxt=nx;
+    return ;
+}
+
+/*Link List part end*/
 
 enum yytokentype {
     num_INT = 258,
@@ -55,47 +87,29 @@ enum yytokentype {
 };
 extern int yylex();
 extern int yylval;
-extern char* yytext;
+extern char *yytext;
 
 int tok;
-void advance() {
-    tok = yylex();
-    printf("[+]advanced tok: %s\n", yytext);
-}
+
 /*function define part begin*/
+
 int analyse_block();
 int analyse_blockitems();
-// int analyse_blockitem();
+
 /*function define part end*/
 
-/*
- * Block: Y_LBRACKET BlockItems Y_RBRACKET
-         | Y_LBRACKET Y_RBRACKET
- */
-int analyse_block() {
-    if(tok != Y_LBRACKET) {
-        printf("ERROR:Expect an LBRACKET.\n");
-        return 0;
-    }
-    advance();
-    return 1;
-}
-/*
- *  BlockItems: BlockItem
-              | BlockItem BlockItems
- */
-int analyse_blockitems() {
-    // analyse_blockitem();
-    advance();
-    return 1;
-}
+
 /*main function*/
 int main(int argc, char **argv)
 {
+    list *bga;
+    bga = listInit(NULL);
     int now = 0;
-    while(1)
+    while(tok = yylex())
     {
-        advance();
+        if (tok!=1){
+            printf("[+]tok read : %d\n",tok);
+        }
     }
     return 0;
 }

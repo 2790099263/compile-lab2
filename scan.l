@@ -55,11 +55,6 @@ _YYLVAL yylval;
 WHITE_SPACE	[ \t\n\r]+
 
 %%
-[0-9]+  {return num_INT;}
-[0-9]+\.[0-9]+ {return num_FLOAT;}
-
-[a-zA-Z_][a-zA-Z0-9_]*	{return Y_ID;}
-
 "int"		{return Y_INT;}
 "void"		{return Y_VOID;}
 "const"		{return Y_CONST;}
@@ -71,6 +66,11 @@ WHITE_SPACE	[ \t\n\r]+
 "return"	{return Y_RETURN;}
 "float"		{return Y_FLOAT;}
 "double"	{return Y_FLOAT;}
+
+[0-9]+  {return num_INT;}
+[0-9]+\.[0-9]+ {return num_FLOAT;}
+
+[a-zA-Z_][a-zA-Z0-9_]*	{return Y_ID;}
 
 "+"		{return Y_ADD;}
 "-" 	{return Y_SUB;}

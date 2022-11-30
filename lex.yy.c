@@ -363,14 +363,14 @@ struct yy_trans_info
 static const flex_int16_t yy_accept[91] =
     {   0,
         0,    0,   43,   41,   40,   40,   29,   21,   41,   33,
-       34,   17,   15,   32,   16,   18,    1,   39,   23,   22,
-       24,    3,   35,   36,    3,    3,    3,    3,    3,    3,
-        3,    3,    3,   37,   41,   38,   40,   28,   19,    0,
-        1,   30,   25,   27,   26,   31,    3,    3,    3,    3,
-        3,    3,    3,    3,    3,    3,    3,   20,    2,    3,
-        3,    3,    3,    3,    3,    3,    3,    3,    3,    3,
-        3,    3,    3,    3,    3,    3,    3,    3,    3,    3,
-        3,    3,    3,    3,    3,    3,    3,    3,    3,    0
+       34,   17,   15,   32,   16,   18,   12,   39,   23,   22,
+       24,   14,   35,   36,   14,   14,   14,   14,   14,   14,
+       14,   14,   14,   37,   41,   38,   40,   28,   19,    0,
+       12,   30,   25,   27,   26,   31,   14,   14,   14,   14,
+       14,   14,    4,   14,   14,   14,   14,   20,   13,   14,
+       14,   14,   14,   14,    1,   14,   14,   14,   14,   14,
+       14,   14,    5,   14,   14,    2,   14,    7,    3,   14,
+       14,   10,   14,    6,   14,   11,    9,   14,    8,    0
     } ;
 
 static const YY_CHAR yy_ec[256] =
@@ -831,72 +831,72 @@ do_action:	/* This label is used only to access EOF actions. */
 case 1:
 YY_RULE_SETUP
 #line 58 "scan.l"
-{return num_INT;}
+{return Y_INT;}
 	YY_BREAK
 case 2:
 YY_RULE_SETUP
 #line 59 "scan.l"
-{return num_FLOAT;}
+{return Y_VOID;}
 	YY_BREAK
 case 3:
 YY_RULE_SETUP
-#line 61 "scan.l"
-{return Y_ID;}
+#line 60 "scan.l"
+{return Y_CONST;}
 	YY_BREAK
 case 4:
 YY_RULE_SETUP
-#line 63 "scan.l"
-{return Y_INT;}
+#line 61 "scan.l"
+{return Y_IF;}
 	YY_BREAK
 case 5:
 YY_RULE_SETUP
-#line 64 "scan.l"
-{return Y_VOID;}
+#line 62 "scan.l"
+{return Y_ELSE;}
 	YY_BREAK
 case 6:
 YY_RULE_SETUP
-#line 65 "scan.l"
-{return Y_CONST;}
+#line 63 "scan.l"
+{return Y_WHILE;}
 	YY_BREAK
 case 7:
 YY_RULE_SETUP
-#line 66 "scan.l"
-{return Y_IF;}
+#line 64 "scan.l"
+{return Y_BREAK;}
 	YY_BREAK
 case 8:
 YY_RULE_SETUP
-#line 67 "scan.l"
-{return Y_ELSE;}
+#line 65 "scan.l"
+{return Y_CONTINUE;}
 	YY_BREAK
 case 9:
 YY_RULE_SETUP
-#line 68 "scan.l"
-{return Y_WHILE;}
+#line 66 "scan.l"
+{return Y_RETURN;}
 	YY_BREAK
 case 10:
 YY_RULE_SETUP
-#line 69 "scan.l"
-{return Y_BREAK;}
+#line 67 "scan.l"
+{return Y_FLOAT;}
 	YY_BREAK
 case 11:
 YY_RULE_SETUP
-#line 70 "scan.l"
-{return Y_CONTINUE;}
+#line 68 "scan.l"
+{return Y_FLOAT;}
 	YY_BREAK
 case 12:
 YY_RULE_SETUP
-#line 71 "scan.l"
-{return Y_RETURN;}
+#line 70 "scan.l"
+{return num_INT;}
 	YY_BREAK
 case 13:
 YY_RULE_SETUP
-#line 72 "scan.l"
-{return Y_FLOAT;}
+#line 71 "scan.l"
+{return num_FLOAT;}
 	YY_BREAK
 case 14:
 YY_RULE_SETUP
 #line 73 "scan.l"
-{return Y_FLOAT;}
+{return Y_ID;}
 	YY_BREAK
 case 15:
 YY_RULE_SETUP
@@ -2046,8 +2046,6 @@ void yyfree (void * ptr )
 
 #line 103 "scan.l"
 
-int yyerror(char *s)
-{
-	fprintf(stderr, "error: %s\n", s);
-	return 0;
+int yywrap() {
+	return 1;
 }
