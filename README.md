@@ -8,3 +8,5 @@
    1. 编写不生成“语法树”的递归下降程序 rdcheck.c
    2. 将 rdcheck.c 改造为生成语法树的递归下降程序 rdparser.c
    3. 改进 词法分析程序、showAst 函数、main 函数等，使递归下降程序 rdparser 最终从命令行读取要分析的程序 test.c,分析后调用 showAst 打印该程序的结构。
+
+## 我的评价是：这个实验就逆天！！！
