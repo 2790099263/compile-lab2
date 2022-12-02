@@ -305,8 +305,22 @@ int analyse_ConstDecl() {
     }
 }
 int analyse_VarDecl() {
-    if(tok == 298) return 1;
-    else return 0;
+    list *bck;
+    bck = pot;
+    if(analyse_Type()){
+        printf("[INFO]      advance Type\n");
+    }else{
+        printf("[UNMATCH]   need a Type\n");
+        return 0;
+    }
+    advance();
+    bck = pot;
+    if(analyse_VarDef()) {
+        printf("[INFO]      advance Vardef\n");
+    }else{
+        printf("[UNMATCH]   need a Vardef\n");
+        return 0;
+    }
 }
 int analyse_Type() {
     switch (tok)
