@@ -381,9 +381,47 @@ int analyse_Block() {
     }
     return 1;
 }
+/*
+FuncParams: FuncParam
+           | FuncParams Y_COMMA FuncParam
+        ====
+FuncParams: FuncParam FuncParams'
+FuncParams':Y_COMMA FuncParam FuncParams|e
+*/
 int analyse_FuncParams(){
-    if(tok == 301)return 1;
-    else return 0;
+    list *bck;
+    bck = pot;
+    if(analyse_FuncParam()){
+        printf("[INFO]      advance FuncParam\n");
+    }else{
+        printf("[UNMATCH]   need FuncParam\n");
+        return 0;
+    }
+    advance();
+    bck = pot;
+    if(tok!=Y_COMMA){
+        rollback(bck->lst);
+        printf("[INFO]      advance e\n");
+        return 1;
+    }else{
+        advance();
+        bck = pot;
+        if(analyse_FuncParam()){
+            printf("[INFO]      advance FuncParam\n");
+        }else{
+            printf("[UNMATCH]   need FuncParam\n");
+            return 0;
+        }
+        advance();
+        bck = pot;
+        if(analyse_FuncParams()){
+            printf("[INFO]      advance FuncParams\n");
+        }else{
+            printf("[UNMATCH]   need FuncParam\n");
+            return 0;
+        }
+    }
+    return 1;
 }
 int analyse_ConstDef(){
     if(tok == 302)return 1;
@@ -403,6 +441,10 @@ int analyse_VarDecls(){
 }
 int analyse_BlockItems(){
     if(tok == 306)return 1;
+    else return 0;
+}
+int analyse_FuncParam(){
+    if(tok == 307)return 1;
     else return 0;
 }
 /*functions program end*/
@@ -426,7 +468,7 @@ int main(int argc, char **argv)
 
     #ifdef DEBUG
     freopen("debug.txt","r",stdin);
-    for(int i=1;i<=5;i++){
+    for(int i=1;i<=7;i++){
         int a=0;
         char ss[5]="test";
         scanf("%d",&a);
@@ -435,7 +477,7 @@ int main(int argc, char **argv)
     #endif
     pot = list_head;
     advance();
-    int res = analyse_Block();
+    int res = analyse_FuncParams();
     printf("res: %d\n",res);
     /*debug out lin->val lin->s part*/
     #ifdef DEBUG_OUT
