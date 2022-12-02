@@ -457,12 +457,105 @@ int analyse_ConstDef(){
     return 1;
 }
 int analyse_ConstDefs(){
-    if(tok == 303)return 1;
-    else return 0;
+    list *bck;
+    bck = pot;
+    if(analyse_ConstDef()){
+        printf("[INFO]      advance ConstDef\n");
+        advance();
+        bck = pot;
+        if(tok!=Y_COMMA){
+            printf("[UNMATCH]   need Comma\n");
+            return 0;
+        }
+        printf("[INFO]      advance Comma\n");
+        advance();
+        bck = pot;
+        if(analyse_ConstDef()){
+            printf("[INFO]      advance ConstDef\n");
+        }else{
+            printf("[UNMATCH]   need ConstDef\n");
+            return 0;
+        }
+    }else{
+        printf("[UNMATCH]   need ConstDef\n");
+        return 0;
+    }
+    advance();
+    bck = pot;
+    if(tok!=Y_COMMA){
+        printf("[INFO]      need Comma\n");
+        rollback(bck->lst);
+        return 1;
+    }
+    printf("[INFO]      advance Comma\n");
+    advance();
+    bck =pot;
+    if(analyse_ConstDef()){
+        printf("[INFO]      advance ConstDef\n");
+    }else{
+        printf("[UNMATCH]   need ConstDef\n");
+        return 0;
+    }
+    advance();
+    bck = pot;
+    if(analyse_ConstDefs()){
+        printf("[INFO]      advance ConstDefs\n");
+    }else{
+        printf("[UNMATCH]   need ConstDefs\n");
+        return 0;
+    }
+    return 1;
 }
 int analyse_VarDef(){
-    if(tok == 304)return 1;
-    else return 0;
+    list *bck;
+    bck = pot;
+    if (tok!=Y_ID){
+        printf("[INFO]      need ID\n");
+        return 0;
+    }
+    printf("[INFO]      advance ID\n");
+    advance();
+    bck = pot;
+    if(tok == Y_ASSIGN){
+        printf("[INFO]      advance Assin\n");
+        advance();
+        bck = pot;
+        if(analyse_InitVal()){
+            printf("[INFO]      advance InitVal\n");
+        }else{
+            printf("[INFO]      need InitVal\n");
+            return 0;
+        }
+        return 1;
+    }else{
+        printf("[UNMATCH]   unmatch Assign\n");
+        rollback(bck->lst);
+    }
+    advance();
+    bck = pot;
+    if(analyse_ConstExps()){
+        printf("[INFO]      advance ConstExps\n");
+        advance();
+        bck = pot;
+        if(tok != Y_ASSIGN){
+            rollback(bck->lst);
+            printf("[UNMATCH]   unmatch Assign\n");
+            return 1;
+        }
+        printf("[INFO]      advance Assign\n");
+        advance();
+        bck = pot;
+        if(analyse_InitVal()){
+            printf("[INFO]      advance InitVal\n");
+        }else{
+            printf("[UNMATCH]   unmatch InitVal\n");
+            return 0;
+        }
+    }else{
+        rollback(bck->lst);
+        return 1;
+    }
+    return 1;
 }
 int analyse_VarDecls(){
     if(tok == 305)return 1;
@@ -482,6 +575,10 @@ int analyse_ConstExps(){
 }
 int analyse_ConstInitVal(){
     if(tok == 309)return 1;
+    else return 0;
+}
+int analyse_InitVal(){
+    if(tok == 310)return 1;
     else return 0;
 }
 /*functions program end*/
@@ -514,7 +611,7 @@ int main(int argc, char **argv)
     #endif
     pot = list_head;
     advance();
-    int res = analyse_ConstDef();
+    int res = analyse_VarDef();
     printf("res: %d\n",res);
     /*debug out lin->val lin->s part*/
     #ifdef DEBUG_OUT
