@@ -309,8 +309,23 @@ int analyse_VarDecl() {
     else return 0;
 }
 int analyse_Type() {
-    if(tok == 299) return 1;
-    else return 0;
+    switch (tok)
+    {
+    case Y_INT:
+        printf("[INFO]      advance Int\n");
+        break;
+    case Y_FLOAT:
+        printf("[INFO]      advance Float\n");
+        break;
+    case Y_VOID:
+        printf("[INFO]      advance void\n");
+        break;
+    default:
+        printf("[UNMATCH]   need INT | FLOAT | VOID\n");
+        return 0;
+        break;
+    }
+    return 1;
 }
 int analyse_Block() {
     if(tok == 300)return 1;
@@ -358,7 +373,7 @@ int main(int argc, char **argv)
     #endif
     pot = list_head;
     advance();
-    int res = analyse_ConstDecl();
+    int res = analyse_Type();
     printf("res: %d\n",res);
     /*debug out lin->val lin->s part*/
     #ifdef DEBUG_OUT
