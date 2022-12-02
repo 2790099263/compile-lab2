@@ -584,8 +584,23 @@ int analyse_VarDecls(){
     return 1;
 }
 int analyse_BlockItems(){
-    if(tok == 306)return 1;
-    else return 0;
+    list *bck;
+    bck = pot;
+    if(analyse_BlockItem()){
+        printf("[INFO]      advance BlockItem\n");
+    }else{
+        printf("[UNMATCH]   need BlockItem\n");
+        return 0;
+    }
+    advance();
+    bck = pot;
+    if(analyse_BlockItems()){
+        printf("[INFO]      advance BlockItem\n");
+    }else{
+        rollback(bck->lst);
+        printf("[UNMATCH]   unmatch BlockItem\n");
+    }
+    return 1;
 }
 int analyse_FuncParam(){
     if(tok == 307)return 1;
@@ -601,6 +616,10 @@ int analyse_ConstInitVal(){
 }
 int analyse_InitVal(){
     if(tok == 310)return 1;
+    else return 0;
+}
+int analyse_BlockItem(){
+    if(tok == 311)return 1;
     else return 0;
 }
 /*functions program end*/
@@ -633,7 +652,7 @@ int main(int argc, char **argv)
     #endif
     pot = list_head;
     advance();
-    int res = analyse_VarDecls();
+    int res = analyse_BlockItems();
     printf("res: %d\n",res);
     /*debug out lin->val lin->s part*/
     #ifdef DEBUG_OUT
