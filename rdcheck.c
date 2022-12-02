@@ -10,8 +10,9 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define RELEASE
-//  #define DEBUG
+#define DECL_PART
+#define DEBUG
+// #define WHILE
 
 /*Linked List part begin*/
 typedef struct list_node
@@ -101,8 +102,21 @@ extern char *yytext;
 
 int tok;
 
+void advance(){
+    printf("[INFO]      pot->nxt : %p\n",pot->nxt);
+    if(pot->nxt != NULL) {
+        pot=pot->nxt;
+        printf("[+]         advance: %d %s\n",pot->val,pot->s);
+        tok=pot->val;
+        return ;
+    }
+    printf("[WARNING]   No advance!");
+    tok=-114514;
+    return ;
+}
+
 /*function decl part begin*/
-#ifdef RELEASE
+#ifdef DECL_PART
 /*
 if below part is right way ,return 1;
 else return 0;
@@ -151,8 +165,37 @@ int analyse_ConstExp();
 /*function decl part end*/
 
 /*functions program begin*/
-
-
+int analyse_CompUnit(){
+    list *bck;
+    bck=pot;
+    if(analyse_Decl()) {
+        advance();
+        analyse_CompUnit();
+        printf("[INFO]      advance Decl\n");
+        return 1;
+    }
+    else {
+        pot=bck;
+    }
+    if(analyse_FuncDef()) {
+        advance();
+        analyse_CompUnit();
+        printf("[INFO]      advance CompUnit\n");
+        return 1;
+    }
+    else {
+        pot=bck;
+    }
+    return 0;
+}
+int analyse_Decl() {
+    if(tok==295)return 1;
+    else return 0;
+}
+int analyse_FuncDef() {
+    if(tok==296)return 1;
+    else return 0;
+}
 /*functions program end*/
 
 
@@ -162,6 +205,7 @@ int main(int argc, char **argv)
     /*init the list*/
     list_head = listInit();
     /*push input yyval & yytext into list;*/
+    #ifdef WHILE
     while(tok = yylex())
     {
         if (tok!=1){
@@ -169,8 +213,21 @@ int main(int argc, char **argv)
             listPush(list_head,tok,yytext);
         }
     }
-    pot = list_head->nxt;
+    #endif
 
+    #ifdef DEBUG
+    freopen("debug.txt","r",stdin);
+    for(int i=1;i<=10;i++){
+        int a=0;
+        char ss[5]="test";
+        scanf("%d",&a);
+        listPush(list_head,a,ss);
+    }
+    #endif
+    pot = list_head;
+    advance();
+    int res = analyse_CompUnit();
+    printf("res: %d\n",res);
     /*debug part*/
     #ifdef DEBUG
     list *lin;
