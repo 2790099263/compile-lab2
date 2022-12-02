@@ -11,6 +11,7 @@
 #include <string.h>
 
 #define DECL_PART
+// #define DEBUG_OUT
 #define DEBUG
 // #define WHILE
 
@@ -42,7 +43,7 @@ void listPush(list *now,int v,char *ss){
     while(po->nxt!=NULL)po=po->nxt;
     nx = (list*)malloc(sizeof(list));
     if(nx == NULL){
-        printf("ERROR! NO MEMORY!\n");
+        printf("[ERROR]     NO MEMORY!\n");
         exit(0);
     }
     strcpy(nx->s,ss);
@@ -106,11 +107,11 @@ void advance(){
     printf("[INFO]      pot->nxt : %p\n",pot->nxt);
     if(pot->nxt != NULL) {
         pot=pot->nxt;
-        printf("[+]         advance: %d %s\n",pot->val,pot->s);
+        printf("[+]         input advance: %d %s\n",pot->val,pot->s);
         tok=pot->val;
         return ;
     }
-    printf("[WARNING]   No advance!");
+    printf("[WARNING]   No advance!\n");
     tok=-114514;
     return ;
 }
@@ -189,11 +190,34 @@ int analyse_CompUnit(){
     return 0;
 }
 int analyse_Decl() {
-    if(tok==295)return 1;
-    else return 0;
+    list* bck;
+    bck = pot;
+    if(analyse_ConstDecl()){
+        printf("[INFO]      advance ConstDecl\n");
+        return 1;
+    }
+    else {
+        pot = bck;
+    }
+    if(analyse_VarDecl()){
+        printf("[INFO]      advance VarDecl\n");
+        return 1;
+    }
+    else {
+        pot = bck;
+    }
+    return 0;
 }
 int analyse_FuncDef() {
     if(tok==296)return 1;
+    else return 0;
+}
+int analyse_ConstDecl() {
+    if(tok == 297) return 1;
+    else return 0;
+}
+int analyse_VarDecl() {
+    if(tok == 298) return 1;
     else return 0;
 }
 /*functions program end*/
@@ -217,7 +241,7 @@ int main(int argc, char **argv)
 
     #ifdef DEBUG
     freopen("debug.txt","r",stdin);
-    for(int i=1;i<=10;i++){
+    for(int i=1;i<=5;i++){
         int a=0;
         char ss[5]="test";
         scanf("%d",&a);
@@ -228,8 +252,8 @@ int main(int argc, char **argv)
     advance();
     int res = analyse_CompUnit();
     printf("res: %d\n",res);
-    /*debug part*/
-    #ifdef DEBUG
+    /*debug out lin->val lin->s part*/
+    #ifdef DEBUG_OUT
     list *lin;
     lin=list_head;
     while(lin->nxt!=NULL){
