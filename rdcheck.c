@@ -424,8 +424,37 @@ int analyse_FuncParams(){
     return 1;
 }
 int analyse_ConstDef(){
-    if(tok == 302)return 1;
-    else return 0;
+    list *bck;
+    bck = pot;
+    if(tok != Y_ID){
+        printf("[UNMATECH]  need ID\n");
+        return 0;
+    }
+    printf("[INFO]      advance ID\n");
+    advance();
+    bck = pot;
+    if(analyse_ConstExps()){
+        printf("[INFO]      advance ConstExps\n");
+    }else{
+        printf("[UNMATCH]   unmatched ConstExps\n");
+        rollback(bck->lst);
+    }
+    advance();
+    bck = pot;
+    if(tok!=Y_ASSIGN){
+        printf("[UNMATCH]   need ASSIGN\n");
+        return 0;
+    }
+    printf("[INFO]      advance ASSIGN\n");
+    advance();
+    bck = pot;
+    if(analyse_ConstInitVal()){
+        printf("[INFO]      advance ConstInitVal\n");
+    }else{
+        printf("[UNMATCH]   need ConstInitVal\n");
+        return 0;
+    }
+    return 1;
 }
 int analyse_ConstDefs(){
     if(tok == 303)return 1;
@@ -445,6 +474,14 @@ int analyse_BlockItems(){
 }
 int analyse_FuncParam(){
     if(tok == 307)return 1;
+    else return 0;
+}
+int analyse_ConstExps(){
+    if(tok == 308)return 1;
+    else return 0;
+}
+int analyse_ConstInitVal(){
+    if(tok == 309)return 1;
     else return 0;
 }
 /*functions program end*/
@@ -477,7 +514,7 @@ int main(int argc, char **argv)
     #endif
     pot = list_head;
     advance();
-    int res = analyse_FuncParams();
+    int res = analyse_ConstDef();
     printf("res: %d\n",res);
     /*debug out lin->val lin->s part*/
     #ifdef DEBUG_OUT
