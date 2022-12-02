@@ -107,7 +107,7 @@ void advance(){
     printf("[INFO]      pot->nxt : %p\n",pot->nxt);
     if(pot->nxt != NULL) {
         pot=pot->nxt;
-        printf("[+]         input advance: %d %s\n",pot->val,pot->s);
+        printf("[+]         advance: %d %s\n",pot->val,pot->s);
         tok=pot->val;
         return ;
     }
@@ -115,7 +115,11 @@ void advance(){
     tok=-114514;
     return ;
 }
-
+void rollback(list *p){
+    pot = p;
+    tok = p->val;
+    return ;
+}
 /*function decl part begin*/
 #ifdef DECL_PART
 /*
@@ -162,7 +166,6 @@ int analyse_LAndExp();
 int analyse_LOrExp();
 int analyse_ConstExp();
 #endif
-
 /*function decl part end*/
 
 /*functions program begin*/
@@ -176,7 +179,7 @@ int analyse_CompUnit(){
         return 1;
     }
     else {
-        pot=bck;
+        rollback(bck);
     }
     if(analyse_FuncDef()) {
         advance();
@@ -185,39 +188,144 @@ int analyse_CompUnit(){
         return 1;
     }
     else {
-        pot=bck;
+        rollback(bck);
     }
     return 0;
 }
 int analyse_Decl() {
-    list* bck;
+    list *bck;
     bck = pot;
     if(analyse_ConstDecl()){
         printf("[INFO]      advance ConstDecl\n");
         return 1;
     }
     else {
-        pot = bck;
+        rollback(bck);
     }
     if(analyse_VarDecl()){
         printf("[INFO]      advance VarDecl\n");
         return 1;
     }
     else {
-        pot = bck;
+        rollback(bck);
     }
     return 0;
 }
 int analyse_FuncDef() {
-    if(tok==296)return 1;
-    else return 0;
+    list *bck;
+    bck = pot;
+    if(analyse_Type()){
+        printf("[INFO]      advance Type\n");
+    }
+    else {
+        rollback(bck);
+        printf("[UNMATCH]   need a Type\n");
+        return 0;
+    }
+    advance();
+    bck = pot;
+    if(tok != Y_ID) {
+        printf("[UNMATCH]   need a Y_ID\n");
+        return 0;
+    }
+    printf("[INFO]      advance Y_ID");
+    advance();
+    bck = pot;
+    if(tok!=Y_LPAR) {
+        printf("[UNMATCH]   need a Y_LPAR\n");
+        return 0;
+    }
+    printf("[INFO]      advance Y_LPAR");
+    advance();
+    bck = pot;
+    if(analyse_FuncParams()) {
+        printf("[INFO]      advance FuncParams\n");
+    }
+    else {
+        rollback(bck->lst);
+    }
+    advance();
+    bck = pot;
+    if(tok != Y_RPAR) {
+        printf("[UNMATCH]   need a Y_RPAR\n");
+        return 0;
+    }
+    printf("[INFO]      advance Y_RPAR");
+    advance();
+    bck = pot;
+    if(analyse_Block()) {
+        printf("[INFO]      advance Block\n");
+        return 1;
+    }
+    else {
+        rollback(bck);
+        printf("[UNMATCH]   need a Block\n");
+        return 0;
+    }
 }
 int analyse_ConstDecl() {
-    if(tok == 297) return 1;
-    else return 0;
+    list *bck;
+    bck = pot;
+    if(tok != Y_CONST){
+        printf("[UNMATCH]   need a Y_CONST\n");
+        return 0;
+    }
+    printf("[INFO]      advance Const\n");
+    advance();
+    bck = pot;
+    if(analyse_Type()) {
+        printf("[INFO]      advance Type\n");
+    }else{
+        printf("[UNMATCH]   need a Type\n");
+        return 0;
+    }
+    advance();
+    bck = pot;
+    if(analyse_ConstDef()){
+        printf("[INFO]      advance ConstDef\n");
+    }else {
+        printf("[UNMATCH]   need ConstDef\n");
+        rollback(bck);
+        if(analyse_ConstDefs()){
+            printf("[INFO]      advace ConstDefs\n");
+        }
+        else {
+            printf("[UNMATCH]   need ConstDefs\n");
+            return 0;
+        }
+    }
+    advance();
+    bck = pot;
+    if(tok!=Y_SEMICOLON){
+        printf("[UNMATCH]   need Semicolon\n");
+        return 0;
+    }else{
+        printf("[INFO]      advance Semicolon\n");
+        return 1;
+    }
 }
 int analyse_VarDecl() {
     if(tok == 298) return 1;
+    else return 0;
+}
+int analyse_Type() {
+    if(tok == 299) return 1;
+    else return 0;
+}
+int analyse_Block() {
+    if(tok == 300)return 1;
+    else return 0;
+}
+int analyse_FuncParams(){
+    if(tok == 301)return 1;
+    else return 0;
+}
+int analyse_ConstDef(){
+    if(tok == 302)return 1;
+    else return 0;
+}
+int analyse_ConstDefs(){
+    if(tok == 303)return 1;
     else return 0;
 }
 /*functions program end*/
@@ -250,7 +358,7 @@ int main(int argc, char **argv)
     #endif
     pot = list_head;
     advance();
-    int res = analyse_CompUnit();
+    int res = analyse_ConstDecl();
     printf("res: %d\n",res);
     /*debug out lin->val lin->s part*/
     #ifdef DEBUG_OUT
