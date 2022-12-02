@@ -321,6 +321,22 @@ int analyse_VarDecl() {
         printf("[UNMATCH]   need a Vardef\n");
         return 0;
     }
+    advance();
+    bck = pot;
+    if(analyse_VarDecls()) {
+        printf("[INFO]      advance VarDecls\n");
+    }else{
+        printf("[UNMATCH]   need a VarDecls\n");
+        rollback(bck->lst);
+    }
+    advance();
+    bck = pot;
+    if(tok!=Y_SEMICOLON){
+        printf("[UNMATCH]   need a Semicolon\n");
+        return 0;
+    }
+    printf("[INFO]      advance semicolon\n");
+    return 1;
 }
 int analyse_Type() {
     switch (tok)
@@ -342,8 +358,28 @@ int analyse_Type() {
     return 1;
 }
 int analyse_Block() {
-    if(tok == 300)return 1;
-    else return 0;
+    list *bck;
+    bck = pot;
+    if(tok!=Y_LBRACKET){
+        printf("[UNMATCH]   need LBracket\n");
+        return 0;
+    }
+    printf("[INFO]      advance LBracket\n");
+    advance();
+    bck = pot;
+    if(analyse_BlockItems()){
+        printf("[INFO]  advance blockitems\n");
+    }else{
+        rollback(bck->lst);
+        printf("[UNMATCH]   unmatch blockitems\n");
+    }
+    advance();
+    bck = pot;
+    if(tok!=Y_RBRACKET){
+        printf("[UNMATCH]   need a Rbracket\n");
+        return 0;
+    }
+    return 1;
 }
 int analyse_FuncParams(){
     if(tok == 301)return 1;
@@ -355,6 +391,18 @@ int analyse_ConstDef(){
 }
 int analyse_ConstDefs(){
     if(tok == 303)return 1;
+    else return 0;
+}
+int analyse_VarDef(){
+    if(tok == 304)return 1;
+    else return 0;
+}
+int analyse_VarDecls(){
+    if(tok == 305)return 1;
+    else return 0;
+}
+int analyse_BlockItems(){
+    if(tok == 306)return 1;
     else return 0;
 }
 /*functions program end*/
@@ -387,7 +435,7 @@ int main(int argc, char **argv)
     #endif
     pot = list_head;
     advance();
-    int res = analyse_Type();
+    int res = analyse_Block();
     printf("res: %d\n",res);
     /*debug out lin->val lin->s part*/
     #ifdef DEBUG_OUT
