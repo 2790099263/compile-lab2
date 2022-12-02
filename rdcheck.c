@@ -558,8 +558,30 @@ int analyse_VarDef(){
     return 1;
 }
 int analyse_VarDecls(){
-    if(tok == 305)return 1;
-    else return 0;
+    list *bck;
+    bck = pot;
+    if(tok!=Y_COMMA){
+        printf("[UNMATCH]   need a Comma\n");
+        return 0;
+    }
+    printf("[INFO]      advance Comma\n");
+    advance();
+    bck = pot;
+    if(analyse_VarDef()){
+        printf("[INFO]      advance VarDef\n");
+    }else{
+        printf("[INFO]      need VarDef\n");
+        return 0;
+    }
+    advance();
+    bck = pot;
+    if(analyse_VarDecls()){
+        printf("[INFO]      advance VarDecls\n");
+    }else{
+        printf("[UNMATCH]   unmatch VarDecls\n");
+        rollback(bck->lst);
+    }
+    return 1;
 }
 int analyse_BlockItems(){
     if(tok == 306)return 1;
@@ -611,7 +633,7 @@ int main(int argc, char **argv)
     #endif
     pot = list_head;
     advance();
-    int res = analyse_VarDef();
+    int res = analyse_VarDecls();
     printf("res: %d\n",res);
     /*debug out lin->val lin->s part*/
     #ifdef DEBUG_OUT
