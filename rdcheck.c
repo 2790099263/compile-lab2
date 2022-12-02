@@ -603,8 +603,53 @@ int analyse_BlockItems(){
     return 1;
 }
 int analyse_FuncParam(){
-    if(tok == 307)return 1;
-    else return 0;
+    list *bck;
+    bck = pot;
+    if(analyse_Type()){
+        printf("[INFO]      advance Type\n");
+    }else{
+        printf("[UNMATCH]   unmatch Type\n");
+        return 0;
+    }
+    advance();
+    bck = pot;
+    if(tok != Y_ID){
+        printf("[UNMATCH]   unmatch Y_ID\n");
+        return 0;
+    }
+    printf("[INFO]      advance Y_ID\n");
+    advance();
+    bck = pot;
+    if(analyse_ArraySubscripts()){
+        printf("[INFO]      advance ArraySubScripts\n");
+        return 1;
+    }else{
+        printf("[UNMATCH]   unmatch ArraySubScripts\n");
+        rollback(bck->lst);
+    }
+    advance();
+    bck = pot;
+    if(tok!=Y_LSQUARE){
+        printf("[UNMATCH]   unmatch LSquare\n");
+        return 1;
+    }
+    printf("[INFO]      advance LSquare\n");
+    advance();
+    bck = pot ;
+    if(tok!=Y_RSQUARE){
+        printf("[UNMATCH]   unmatch RSquare\n");
+        return 0;
+    }
+    printf("[INFO]      advance RSquare\n");
+    advance();
+    bck = pot;
+    if(analyse_ArraySubscripts()){
+        printf("[INFO]      advance ArraySubscripts\n");
+    }else{
+        printf("[UNMATCH]   unmatc ArraySubScripts\n");
+        rollback(bck->lst);
+    }
+    return 1;
 }
 int analyse_ConstExps(){
     if(tok == 308)return 1;
@@ -620,6 +665,10 @@ int analyse_InitVal(){
 }
 int analyse_BlockItem(){
     if(tok == 311)return 1;
+    else return 0;
+}
+int analyse_ArraySubscripts(){
+    if(tok == 312)return 1;
     else return 0;
 }
 /*functions program end*/
@@ -652,7 +701,7 @@ int main(int argc, char **argv)
     #endif
     pot = list_head;
     advance();
-    int res = analyse_BlockItems();
+    int res = analyse_FuncParam();
     printf("res: %d\n",res);
     /*debug out lin->val lin->s part*/
     #ifdef DEBUG_OUT
