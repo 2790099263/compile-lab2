@@ -821,17 +821,43 @@ int analyse_ArraySubscripts(){
     return 1;
 }
 int analyse_ConstExp(){
+    list *bck;
+    bck =pot;
     if(analyse_AddExp()){
         printf("[INFO]      advance AddExp\n");
         return 1;
     }else{
         printf("[UNMATCH]   unmatch AddExp\n");
+        rollback(bck);
         return 0;
     }
 }
 int analyse_ConstInitVals(){
-    if(tok == 314)return 1;
-    else return 0;
+    list *bck;
+    bck = pot;
+    if(tok != Y_COMMA){
+        printf("[UNMATCH]   unmatch Comma\n");
+        return 0;
+    }
+    printf("[INFO]      advance Comma\n");
+    advance();
+    bck = pot;
+    if(analyse_ConstInitVal()){
+        printf("[INFO]      advance ConstInitVal\n");
+    }else{
+        printf("[UNMATCH]   unmatch ConstInitVal\n");
+        rollback(bck);
+        return 0;
+    }
+    advance();
+    bck = pot;
+    if(analyse_ConstInitVals()){
+        printf("[INFO]      advance ConstInitVals\n");
+    }else{
+        printf("[UNMATCH]   unmatch ConstInitVals\n");
+        rollback(bck->lst);
+    }
+    return 1;
 }
 int analyse_Exp(){
     if(tok == 315)return 1;
@@ -875,7 +901,7 @@ int main(int argc, char **argv)
     #endif
     pot = list_head;
     advance();
-    int res = analyse_ArraySubscripts();
+    int res = analyse_ConstInitVals();
     printf("res: %d\n",res);
     /*debug out lin->val lin->s part*/
     #ifdef DEBUG_OUT
