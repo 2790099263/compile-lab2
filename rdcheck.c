@@ -768,8 +768,25 @@ int analyse_InitVal(){
     return 1;
 }
 int analyse_BlockItem(){
-    if(tok == 311)return 1;
-    else return 0;
+    list *bck ;
+    bck = pot;
+    if(analyse_Decl()){
+        printf("[INFO]      advance Decl\n");
+        return 1;
+    }else{
+        printf("[UNMATCH]   unmatch Decl\n");
+        rollback(bck->lst);
+    }
+    advance();
+    bck = pot;
+    if(analyse_Stmt()){
+        printf("[INFO]      advance Stmt\n");
+        return 1;
+    }else{
+        printf("[UNMATCH]   need Stmt\n");
+        rollback(bck->lst);
+    }
+    return 0;
 }
 int analyse_ArraySubscripts(){
     if(tok == 312)return 1;
@@ -789,6 +806,10 @@ int analyse_Exp(){
 }
 int analyse_InitVals(){
     if(tok == 316)return 1;
+    else return 0;
+}
+int analyse_Stmt(){
+    if(tok == 318)return 1;
     else return 0;
 }
 /*functions program end*/
@@ -821,7 +842,7 @@ int main(int argc, char **argv)
     #endif
     pot = list_head;
     advance();
-    int res = analyse_InitVal();
+    int res = analyse_BlockItem();
     printf("res: %d\n",res);
     /*debug out lin->val lin->s part*/
     #ifdef DEBUG_OUT
