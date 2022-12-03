@@ -685,8 +685,45 @@ int analyse_ConstExps(){
     return 1;
 }
 int analyse_ConstInitVal(){
-    if(tok == 309)return 1;
-    else return 0;
+    list *bck;
+    bck = pot;
+    if(analyse_ConstExp()){
+        printf("[INFO]      advance ConstExp\n");
+        return 1;
+    }else{
+        printf("[UNMATCH]   need ConstExp\n");
+        rollback(bck->lst);
+    }
+    advance();
+    bck = pot;
+    if(tok!=Y_LBRACKET){
+        printf("[UNMATCH]   need Lbracket\n");
+        return 0;
+    }
+    printf("[INFO]      advance Lbracket\n");
+    advance();
+    bck = pot;
+    if(analyse_ConstInitVal()){
+        printf("[INFO]      advance ConstInitVal\n");
+        advance();
+        bck = pot;
+        if(analyse_ConstInitVals()){
+            printf("[INFO]      advance ConstInitVals\n");
+        }else{
+            printf("[UNMATCH]   need ConstInitVals\n");
+            rollback(bck->lst);
+        }
+    }else{
+        printf("[UNMATCH]   unmatch ConstInitVal\n");
+        rollback(bck->lst);
+    }
+    advance();
+    bck = pot;
+    if(tok != Y_RBRACKET){
+        printf("[UNMATCH]   need Rbracket\n");
+        return 0;
+    }
+    return 1;
 }
 int analyse_InitVal(){
     if(tok == 310)return 1;
@@ -702,6 +739,10 @@ int analyse_ArraySubscripts(){
 }
 int analyse_ConstExp(){
     if(tok == 313)return 1;
+    else return 0;
+}
+int analyse_ConstInitVals(){
+    if(tok == 314)return 1;
     else return 0;
 }
 /*functions program end*/
@@ -734,7 +775,7 @@ int main(int argc, char **argv)
     #endif
     pot = list_head;
     advance();
-    int res = analyse_ConstExps();
+    int res = analyse_ConstInitVal();
     printf("res: %d\n",res);
     /*debug out lin->val lin->s part*/
     #ifdef DEBUG_OUT
