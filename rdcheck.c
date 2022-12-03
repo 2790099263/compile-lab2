@@ -726,8 +726,46 @@ int analyse_ConstInitVal(){
     return 1;
 }
 int analyse_InitVal(){
-    if(tok == 310)return 1;
-    else return 0;
+    list *bck;
+    bck = pot;
+    if(analyse_Exp()){
+        printf("[INFO]      advance Exp\n");
+        return 1;
+    }else{
+        printf("[UNMATCH]   unmatch Exp\n");
+        rollback(bck->lst);
+    }
+    advance();
+    bck = pot;
+    if(tok != Y_LBRACKET){
+        printf("[UNMATCH]   unmatch Lbracket\n");
+        return 0;
+    }
+    printf("[INFO]      advance Lbracket\n");
+    advance();
+    bck = pot;
+    if(analyse_InitVal()){
+        printf("[INFO]      advance InitVal\n");
+        advance();
+        bck = pot;
+        if(analyse_InitVals()){
+            printf("[INFO]      advance InitVals\n");
+        }else{
+            printf("[UNMATCH]   unmatch InitVals\n");
+            rollback(bck->lst);
+        }
+    }else{
+        printf("[UNMATCH]   unmatch InitVal\n");
+        rollback(bck->lst);
+    }
+    advance();
+    bck = pot;
+    if(tok != Y_RBRACKET){
+        printf("[UNMATCH]   unmatch Rbracket\n");
+        return 0;
+    }
+    printf("[INFO]      advance Rbracket\n");
+    return 1;
 }
 int analyse_BlockItem(){
     if(tok == 311)return 1;
@@ -743,6 +781,14 @@ int analyse_ConstExp(){
 }
 int analyse_ConstInitVals(){
     if(tok == 314)return 1;
+    else return 0;
+}
+int analyse_Exp(){
+    if(tok == 315)return 1;
+    else return 0;
+}
+int analyse_InitVals(){
+    if(tok == 316)return 1;
     else return 0;
 }
 /*functions program end*/
@@ -775,7 +821,7 @@ int main(int argc, char **argv)
     #endif
     pot = list_head;
     advance();
-    int res = analyse_ConstInitVal();
+    int res = analyse_InitVal();
     printf("res: %d\n",res);
     /*debug out lin->val lin->s part*/
     #ifdef DEBUG_OUT
