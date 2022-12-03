@@ -652,8 +652,37 @@ int analyse_FuncParam(){
     return 1;
 }
 int analyse_ConstExps(){
-    if(tok == 308)return 1;
-    else return 0;
+    list *bck;
+    bck = pot;
+    if(tok != Y_LSQUARE){
+        printf("[UNMATCH]   unmatch Lsquare\n");
+        return 0;
+    }
+    printf("[INFO]      advance Lsquare\n");
+    advance();
+    bck = pot;
+    if(analyse_ConstExp()){
+        printf("[INFO]      advance ConstExp\n");
+    }else{
+        printf("[UNMATCH]   need ConstExp\n");
+        return 0;
+    }
+    advance();
+    bck = pot;
+    if(tok!=Y_RSQUARE){
+        printf("[UNMATCH]   unmatch Rsquare\n");
+        return 0;
+    }
+    printf("[INFO]      advance Rsquare\n");
+    advance();
+    bck = pot;
+    if(analyse_ConstExps()){
+        printf("[INFO]      advance ConstExp\n");
+    }else{
+        printf("[UNMATCH]   need ConstExps\n");
+        rollback(bck->lst);
+    }
+    return 1;
 }
 int analyse_ConstInitVal(){
     if(tok == 309)return 1;
@@ -669,6 +698,10 @@ int analyse_BlockItem(){
 }
 int analyse_ArraySubscripts(){
     if(tok == 312)return 1;
+    else return 0;
+}
+int analyse_ConstExp(){
+    if(tok == 313)return 1;
     else return 0;
 }
 /*functions program end*/
@@ -701,7 +734,7 @@ int main(int argc, char **argv)
     #endif
     pot = list_head;
     advance();
-    int res = analyse_FuncParam();
+    int res = analyse_ConstExps();
     printf("res: %d\n",res);
     /*debug out lin->val lin->s part*/
     #ifdef DEBUG_OUT
