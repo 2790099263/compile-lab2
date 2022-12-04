@@ -1082,15 +1082,181 @@ int analyse_Stmt(){
     return 0;
 }
 int analyse_AddExp(){
-    if(tok == 319)return 1;
-    else return 0;
+    list *bck ;
+    bck = pot;
+    if(analyse_MulExp()){
+        printf("[INFO]      advance MULEXP\n");
+        return 1;
+    }else{
+        printf("[UNMATCH]   unmatch MULEXP\n");
+        rollback(bck);
+    }
+    if(tok  == Y_ADD){
+        printf("[INFO]      advance ADD\n");
+    }
+    if(tok  == Y_SUB){
+        printf("[INFO]      advance SUB\n");
+    }else{
+        printf("[UNMATCH]   unmatch ADD|SUB\n");
+        rollback(bck->lst);
+        return 1;
+    }
+    advance();
+    bck = pot;
+    if(analyse_MulExp()){
+        printf("[INFO]      advance MulExp\n");
+        return 1;
+    }else{
+        printf("[UNMATCH]   need MULEXP\n");
+        rollback(bck);
+        return 0;
+    }
 }
 int analyse_LVal(){
-    if(tok == 320)return 1;
-    else return 0;
+    list *bck ;
+    bck = pot;
+    if(tok != Y_ID){
+        printf("[UNMATCH]   unmatch ID\n");
+        return 0;
+    }
+    printf("[INFO]      advance ID");
+    advance();
+    bck = pot;
+    if(analyse_ArraySubscripts()){
+        printf("[INFO]      advance ArraySubscripts\n");
+        return 1;
+    }else{
+        printf("[UNMATCH]   unmatch ArraySubscripts\n");
+        rollback(bck->lst);
+    }
+    return 1;
 }
 int analyse_LOrExp(){
-    if(tok == 321)return 1;
+    list *bck;
+    bck = pot;
+    if(analyse_LAndExp()){
+        printf("[INFO]      advance LandExp\n");
+    }else{
+        printf("[UNMATCH]   unmatch LAndExp\n");
+        rollback(bck);
+        return 0;
+    }
+    advance();
+    bck = pot;
+    if(tok == Y_OR){
+        printf("[INFO]      advance OR\n");
+        advance();
+        bck = pot;
+        if(analyse_LOrExp()){
+            printf("[INFO]      advance LorExp\n");
+        }else{
+            printf("[UNMATCH]   need LOrExp\n");
+            rollback(bck);
+            return 0;
+        }
+    }else{
+        printf("[UNMATCH]   unmatch OR\n");
+        rollback(bck->lst);
+    }
+    return 1;
+}
+int analyse_MulExp(){
+    list *bck;
+    bck = pot;
+    if(analyse_UnaryExp()){
+        printf("[INFO]      advance UnaryExp\n");
+    }else{
+        printf("[UNMATCH]   unmatch UnaryExp\n");
+        rollback(bck);
+        return 0;
+    }
+    advance();
+    bck = pot;
+    if(tok == Y_MUL){
+        printf("[INFO]      advance MUL\n");
+        advance();
+        bck = pot;
+        if(analyse_UnaryExp()){
+            printf("[INFO]      advance UnaryExp\n");
+        }else{
+            printf("[UNMATCH]   unmatch UnaryExp\n");
+            rollback(bck);
+            return 1;
+        }
+    }else if(tok == Y_DIV){
+        printf("[INFO]      advance DIV\n");
+        advance();
+        bck = pot;
+        if(analyse_UnaryExp()){
+            printf("[INFO]      advance UnaryExp\n");
+        }else{
+            printf("[UNMATCH]   unmatch UnaryExp\n");
+            rollback(bck);
+            return 1;
+        }
+    }else if(tok == Y_MODULO){
+        printf("[INFO]      advance MODULO\n");
+        advance();
+        bck = pot;
+        if(analyse_UnaryExp()){
+            printf("[INFO]      advance UnaryExp\n");
+        }else{
+            printf("[UNMATCH]   unmatch UnaryExp\n");
+            rollback(bck);
+            return 1;
+        }
+    }else{
+        printf("[UNMATCH]   need MUL|DIV|MODULO\n");
+        rollback(bck->lst);
+        return 1;
+    }
+    advance();
+    bck = pot;
+    if(analyse_MulExp()){
+        printf("[INFO]      advance MulExp\n");
+    }else{
+        printf("[UNMATCH]   unmatch MulExp\n");
+        rollback(bck);
+        return 0;
+    }
+    return 1;
+}
+int analyse_LAndExp(){
+    list *bck ;
+    bck = pot;
+    if(analyse_EqExp()){
+        printf("[INFO]      advance EqExp\n");
+    }else{
+        printf("[UNMATCH]   unmatch EqExp\n");
+        rollback(bck);
+        return 0;
+    }
+    advance();
+    bck =pot;
+    if(tok == Y_ADD){
+        printf("[INFO]      advance ADD\n");
+        advance();
+        bck =pot;
+        if(analyse_LAndExp()){
+            printf("[INFO]      advance LAndExp\n");
+        }else{
+            printf("[UNMATCH]   unmatch LAndExp\n");
+            rollback(bck);
+            return 0;
+        }
+        
+    }else{
+        printf("[UNMATCH]   unmatch ADD\n");
+        rollback(bck->lst);
+    }
+    return 1;
+}
+int analyse_UnaryExp(){
+    if(tok == 324)return 1;
+    else return 0;
+}
+int analyse_EqExp(){
+    if(tok == 325)return 1;
     else return 0;
 }
 /*functions program end*/
@@ -1123,7 +1289,7 @@ int main(int argc, char **argv)
     #endif
     pot = list_head;
     advance();
-    int res = analyse_Stmt();
+    int res = analyse_AddExp();
     printf("res: %d\n",res);
     /*debug out lin->val lin->s part*/
     #ifdef DEBUG_OUT
