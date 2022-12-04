@@ -822,7 +822,7 @@ int analyse_ArraySubscripts(){
 }
 int analyse_ConstExp(){
     list *bck;
-    bck =pot;
+    bck = pot;
     if(analyse_AddExp()){
         printf("[INFO]      advance AddExp\n");
         return 1;
@@ -860,15 +860,237 @@ int analyse_ConstInitVals(){
     return 1;
 }
 int analyse_Exp(){
-    if(tok == 315)return 1;
-    else return 0;
+    list *bck;
+    bck = pot;
+    if(analyse_AddExp()){
+        printf("[INFO]      advance AddExp\n");
+        return 1;
+    }else{
+        printf("[UNMATCH]   unmatch AddExp\n");
+        rollback(bck);
+        return 0;
+    }
 }
 int analyse_InitVals(){
-    if(tok == 316)return 1;
-    else return 0;
+    list *bck ;
+    bck = pot;
+    if(tok != Y_COMMA){
+        printf("[UNMATCH]   unmatch Comma\n");
+        return 0;
+    }
+    printf("[INFO]      advance Comma\n");
+    advance();
+    bck = pot;
+    if(analyse_InitVal()){
+        printf("[INFO]      advance InitVal\n");
+    }else{
+        printf("[UNMATCH]   unmatch InitVal\n");
+        rollback(bck);
+        return 0;
+    }
+    advance();
+    bck = pot;
+    if(analyse_InitVals()){
+        printf("[INFO]      advance InitVals\n");
+    }else{
+        printf("[UNMATCH]   unmatch InitVals\n");
+        rollback(bck->lst);
+    }
+    return 1;
 }
 int analyse_Stmt(){
-    if(tok == 318)return 1;
+    list *bck ;
+    bck = pot ;
+    if(tok == Y_SEMICOLON){
+        printf("[INFO]      advance Semicolon\n");
+        return 1;
+    }
+    if(analyse_LVal()){
+        printf("[INFO]      advance Lval\n");
+        advance();
+        bck = pot;
+        if(tok != Y_ASSIGN){
+            printf("[UNMATCH]   unmatch Assign\n");
+            return 0;
+        }
+        printf("[INFO]      advance Assign\n");
+        advance();
+        bck = pot;
+        if(analyse_Exp()){
+            printf("[INFO]      advance Exp\n");
+        }else{
+            printf("[UNMATCH]   unmatch Exp\n");
+            rollback(bck);
+            return 0;
+        }
+        advance();
+        bck = pot;
+        if(tok != Y_SEMICOLON){
+            printf("[UNMATCH]   unmatch Semicolon\n");
+            return 0;
+        }
+        printf("[INFO]      advance Semicolon\n");
+        return 1;
+    }else{
+        printf("[UNMATCH]   unmatch LVal\n");
+        rollback(bck);
+    }
+    if(analyse_Exp()){
+        printf("[INFO]      advance Exp\n");
+        advance();
+        bck = pot;
+        if(tok != Y_SEMICOLON){
+            printf("[UNMATCH]   unmatch Semicolon\n");
+            return 0;
+        }
+    }else{
+        printf("[UNMATCH]   unmatch Exp\n");
+        rollback(bck);
+    }
+    if(analyse_Block()){
+        printf("[INFO]      advance Block \n");
+        return 1;
+    }else{
+        printf("[UNMATCH]   unmatch Block\n");
+        rollback(bck);
+    }
+    if(tok == Y_WHILE){
+        printf("[INFO]      advance While\n");
+        advance();
+        bck = pot;
+        if(tok != Y_LPAR){
+            printf("[UNMATCH]   unmatch LPAR\n");
+            return 0;
+        }
+        printf("[INFO]      advance LPAR\n");
+        advance();
+        bck = pot;
+        if(analyse_LOrExp()){
+            printf("[INFO]      advance LOrExp\n");
+        }else{
+            printf("[UNMATCH]   unmatch LorExp\n");
+            rollback(bck);
+            return 0;
+        }
+        advance();
+        bck = pot;
+        if(tok != Y_RPAR){
+            printf("[UNMATCH]   unmatch RPAR\n");
+            return 0;
+        }
+        printf("[INFO]      advance RPAR\n");
+        advance();
+        bck = pot;
+        if(analyse_Stmt()){
+            printf("[INFO]      advance Stmt\n");
+        }else{
+            printf("[UNMATCH]   unmatch Stmt\n");
+            return 0;
+        }
+        return 1;
+    }
+    if(tok == Y_IF){
+        printf("[INFO]      advance IF\n");
+        advance();
+        bck = pot ;
+        if(tok != Y_LPAR){
+            printf("[UNMATCH]   unmatch LPAR\n");
+            return 0;
+        }
+        printf("[INFO]      advance LPAR\n");
+        advance();
+        bck = pot;
+        if(analyse_LOrExp()){
+            printf("[INFO]      advance LorExp\n");
+        }else{
+            printf("[UNMATCH]   unmatch LorExp\n");
+            return 0;
+        }
+        advance();
+        bck = pot;
+        if(tok != Y_RPAR){
+            printf("[UNMATCH]   unmatch RPAR\n");
+            return 0;
+        }
+        printf("[INFO]      advance Rpar\n");
+        advance();
+        if(analyse_Stmt()){
+            printf("[INFO]      advance Stmt");
+        }else{
+            printf("[UNMATCH]   unmatch Stmt\n");
+            rollback(bck);
+            return 0;
+        }
+        advance();
+        bck = pot;
+        if(tok !=Y_ELSE){
+            rollback(bck->lst);
+            printf("[UNMATCH]   unmatch Else\n");
+            return 1;
+        }
+        printf("[INFO]      advance Else\n");
+        advance();
+        bck = pot;
+        if(analyse_Stmt()){
+            printf("[INFO]      advance Stmt\n");
+        }else{
+            printf("[UNMATCH]   unmatch Stmt\n");
+            rollback(bck);
+            return 0;
+        }
+        return 1;
+    }
+    if(tok == Y_BREAK){
+        printf("[INFO]      advance Break\n");
+        advance();
+        bck = pot;
+        if(tok != Y_SEMICOLON){
+            printf("[UNMATCH]   unmatch Semicolon\n");
+            return 0;
+        }
+        printf("[INFO]      advance semicolon\n");
+        return 1;
+    }
+    if(tok == Y_CONTINUE){
+        printf("[INFO]      advance Continue\n");
+        advance();
+        bck = pot;
+        if(tok != Y_SEMICOLON){
+            printf("[UNMATCH]   unmatch Semicolon\n");
+            return 0;
+        }
+        printf("[INFO]      advance Semicolon\n");
+        return 1;
+    }
+    if(tok == Y_RETURN){
+        printf("[INFO]      advance RETURN\n");
+        advance();
+        bck = pot;
+        if(analyse_Exp()){
+            printf("[INFO]  advance Exp");
+        }else{
+            printf("[UNMATCH]   unmatch Exp\n");
+            rollback(bck);
+        }
+        if(tok != Y_SEMICOLON){
+            printf("[UNMATCH]   unmatch Semiclon\n");
+            return 0;
+        }
+        printf("[INFO]      advance Semicolon\n");
+        return 1;
+    }
+    return 0;
+}
+int analyse_AddExp(){
+    if(tok == 319)return 1;
+    else return 0;
+}
+int analyse_LVal(){
+    if(tok == 320)return 1;
+    else return 0;
+}
+int analyse_LOrExp(){
+    if(tok == 321)return 1;
     else return 0;
 }
 /*functions program end*/
@@ -901,7 +1123,7 @@ int main(int argc, char **argv)
     #endif
     pot = list_head;
     advance();
-    int res = analyse_ConstInitVals();
+    int res = analyse_Stmt();
     printf("res: %d\n",res);
     /*debug out lin->val lin->s part*/
     #ifdef DEBUG_OUT
