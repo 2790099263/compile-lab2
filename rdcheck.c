@@ -1252,8 +1252,81 @@ int analyse_LAndExp(){
     return 1;
 }
 int analyse_UnaryExp(){
-    if(tok == 324)return 1;
-    else return 0;
+    list *bck ;
+    bck = pot;
+    if(analyse_PrimaryExp()){
+        printf("[INFO]      advance PrimaryExp\n");
+        return 1;
+    }else{
+        printf("[UNMATCH]   unmatch PrimaryExp\n");
+        rollback(bck);
+    }
+    if(tok == Y_ID){
+        printf("[INFO]      advance Y_ID\n");
+        advance();
+        bck = pot;
+        if(tok !=Y_LPAR){
+            printf("[UNMATCH]   unmatch LPAR\n");
+            return 0;
+        }
+        printf("[INFO]      advance LPAR\n");
+        advance();
+        bck = pot;
+        if(analyse_CallParams()){
+            printf("[INFO]      advance CallParams\n");
+        }else{
+            printf("[UNMATCH]   unmatch CallParams\n");
+            rollback(bck->lst);
+        }
+        advance();
+        bck = pot;
+        if(tok != Y_RPAR){
+            printf("[UNMATCH]   unmatch Y_RPAR\n");
+            return 0;
+        }
+        printf("[INFO]      advance RPAR\n");
+        return 1;
+    }
+    if(tok == Y_ADD){
+        printf("[INFO]      advance Y_ADD\n");
+        advance();
+        bck = pot;
+        if(analyse_UnaryExp()){
+            printf("[INFO]      advance UnaryExp\n");
+        }else{
+            printf("[UNMATCH]   unmatch UnaryExp\n");
+            rollback(bck);
+            return 0;
+        }
+        return 1;
+    }
+    if(tok == Y_SUB){
+        printf("[INFO]      advance Y_SUB\n");
+        advance();
+        bck = pot;
+        if(analyse_UnaryExp()){
+            printf("[INFO]      advance UnaryExp\n");
+        }else{
+            printf("[UNMATCH]   unmatch UnaryExp\n");
+            rollback(bck);
+            return 0;
+        }
+        return 1;
+    }
+    if(tok == Y_NOT){
+        printf("[INFO]      advance Y_NOT\n");
+        advance();
+        bck = pot;
+        if(analyse_UnaryExp()){
+            printf("[INFO]      advance UnaryExp\n");
+        }else{
+            printf("[UNMATCH]   unmatch UnaryExp\n");
+            rollback(bck);
+            return 0;
+        }
+        return 1;
+    }
+    return 0;
 }
 int analyse_EqExp(){
     if(tok == 325)return 1;
