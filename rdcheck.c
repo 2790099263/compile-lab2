@@ -1329,8 +1329,44 @@ int analyse_UnaryExp(){
     return 0;
 }
 int analyse_EqExp(){
-    if(tok == 325)return 1;
-    else return 0;
+    list *bck ;
+    bck =pot;
+    if(analyse_RelExp()){
+        printf("[INFO]      advance RelExp\n");
+    }else{
+        printf("[UNMATCH]   unmatch RelExp\n");
+        rollback(bck);
+        return 0;
+    }
+    advance();
+    bck = pot;
+    if(tok==Y_EQ){
+        printf("[INFO]      advance EQ\n");
+        advance();
+        bck = pot;
+        if(analyse_EqExp()){
+            printf("[INFO]      advance EqExp\n");
+        }else{
+            printf("[UNMATCH]   unmatch EqExp\n");
+            rollback(bck);
+            return 0;
+        }
+        return 1;
+    }
+    if(tok == Y_NOTEQ){
+        printf("[INFO]      advance NOTEQ\n");
+        advance();
+        bck = pot;
+        if(analyse_EqExp()){
+            printf("[INFO]      advance EqExp\n");
+        }else{
+            printf("[UNMATCH]   unmatch EqExp\n");
+            rollback(bck);
+            return 0;
+        }
+        return 1;
+    }
+    return 1;
 }
 int analyse_PrimaryExp(){
     if(tok == 326)return 1;
@@ -1338,6 +1374,10 @@ int analyse_PrimaryExp(){
 }
 int analyse_CallParams(){
     if(tok == 327)return 1;
+    else return 0;
+}
+int analyse_RelExp(){
+    if(tok == 328)return 1;
     else return 0;
 }
 /*functions program end*/
