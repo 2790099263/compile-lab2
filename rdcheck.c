@@ -11,9 +11,25 @@
 #include <string.h>
 
 #define DECL_PART
-// #define DEBUG_OUT
-#define DEBUG
-// #define WHILE
+#define DEBUG_OUT
+// #define DEBUG
+#define WHILE
+#define DEBUG_LOG
+
+#ifdef DEBUG_LOG
+void info(char str[]){
+    printf("[INFO]      %s\n",str);
+    return ;
+}
+void path(char strFrom[],char strTo[]){
+    printf("[PATH]      %s   --->   %s\n",strFrom,strTo);
+    return ;
+}
+void fail(char strFrom[],char strTo[]){
+    printf("[FAIL]      %s   \\->   %s\n",strFrom,strTo);
+    return ;
+}
+#endif
 
 /*Linked List part begin*/
 typedef struct list_node
@@ -100,14 +116,15 @@ enum yytokentype {
 extern int yylex();
 extern int yylval;
 extern char *yytext;
-
+char s_now[10];
 int tok;
 
 void advance(){
-    printf("[INFO]      pot->nxt : %p\n",pot->nxt);
+    printf("[NXT]       pot->nxt : %p\n",pot->nxt);
     if(pot->nxt != NULL) {
         pot=pot->nxt;
-        printf("[+]         advance: %d %s\n",pot->val,pot->s);
+        strcpy(s_now,pot->s);
+        printf("[+]         advance: %d %s\n",pot->val,s_now);
         tok=pot->val;
         return ;
     }
@@ -1480,7 +1497,9 @@ int main(int argc, char **argv)
     while(tok = yylex())
     {
         if (tok!=1){
-            // printf("[+]push : %d %s\n",tok,yytext);
+            #ifdef DEBUG_OUT
+            printf("[+]push : %d %s\n",tok,yytext);
+            #endif
             listPush(list_head,tok,yytext);
         }
     }
@@ -1497,7 +1516,7 @@ int main(int argc, char **argv)
     #endif
     pot = list_head;
     advance();
-    int res = analyse_UnaryExp();
+    int res = analyse_CompUnit();
     printf("res: %d\n",res);
     /*debug out lin->val lin->s part*/
     #ifdef DEBUG_OUT
