@@ -1332,6 +1332,14 @@ int analyse_EqExp(){
     if(tok == 325)return 1;
     else return 0;
 }
+int analyse_PrimaryExp(){
+    if(tok == 326)return 1;
+    else return 0;
+}
+int analyse_CallParams(){
+    if(tok == 327)return 1;
+    else return 0;
+}
 /*functions program end*/
 
 
@@ -1362,7 +1370,7 @@ int main(int argc, char **argv)
     #endif
     pot = list_head;
     advance();
-    int res = analyse_AddExp();
+    int res = analyse_UnaryExp();
     printf("res: %d\n",res);
     /*debug out lin->val lin->s part*/
     #ifdef DEBUG_OUT
