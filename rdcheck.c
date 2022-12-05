@@ -132,7 +132,6 @@ int analyse_FuncDef();
 int analyse_ConstDecl();
 int analyse_VarDecl();
 int analyse_Type();
-int analyse_block();
 int analyse_ConstDefs();
 int analyse_ConstExps();
 int analyse_ConstExp();
@@ -158,13 +157,9 @@ int analyse_PrimaryExp();
 int analyse_UnaryExp();
 int analyse_CallParams();
 int analyse_MulExp();
-int analyse_AddExp();
 int analyse_RelExp();
 int analyse_EqExp();
-int analyse_RelExp();
 int analyse_LAndExp();
-int analyse_LOrExp();
-int analyse_ConstExp();
 #endif
 /*function decl part end*/
 
@@ -1369,16 +1364,108 @@ int analyse_EqExp(){
     return 1;
 }
 int analyse_PrimaryExp(){
-    if(tok == 326)return 1;
-    else return 0;
+    list *bck ;
+    bck = pot;
+    if(tok == Y_LPAR){
+        printf("[INFO]      advance LPAR\n");
+        advance();
+        bck =pot;
+        if(analyse_Exp()){
+            printf("[INFO]      advance Exp\n");
+        }else{
+            printf("[UNMATCH]   unmatch Exp\n");
+            rollback(bck);
+            return 0;
+        }
+        advance();
+        bck = pot;
+        if(tok != Y_RPAR){
+            printf("[UNMATCH]   unmatch RPAR\n");
+            return 0;
+        }
+        printf("[INFO]      advance RPAR\n");
+        return 1;
+    }
+    if(tok == num_INT){
+        printf("[INFO]      advance num_INT\n");
+        return 1;
+    }else{
+        printf("[UNMATCH]   unmatch num_INT\n");
+    }
+    if(tok == num_FLOAT){
+        printf("[INFO]      advance num_FLOAT\n");
+        return 1;
+    }else{
+        printf("[UNMATCH]   unmatch num_FLOAT\n");
+    }
+    if(analyse_LVal()){
+        printf("[INFO]      advance LVAL\n");
+        return 1;
+    }else{
+        printf("[UNMATCH]   unmatch LVAL\n");
+        rollback(bck);
+    }
+    return 0;
 }
 int analyse_CallParams(){
-    if(tok == 327)return 1;
-    else return 0;
+    list *bck;
+    bck = pot;
+    if(analyse_Exp()){
+        printf("[INFO]      advance EXP\n");
+    }else{
+        printf("[UNMATCH]   unmatch Exp\n");
+        rollback(bck);
+        return 0;
+    }
+    advance();
+    bck = pot;
+    if(tok == Y_COMMA){
+        printf("[INFO]  advance COMMA\n");
+        advance();
+        bck = pot;
+        if(analyse_CallParams()){
+            printf("[INFO]      advance CallParams\n");
+            return 1;
+        }else{
+            printf("[UNMATCH]   unmatch CallParams\n");
+            rollback(bck);
+            return 0;
+        }
+    }else{
+        printf("[UNMATCH]   unmatch COMMA\n");
+        rollback(bck->lst);
+    }
+    return 1;
 }
 int analyse_RelExp(){
-    if(tok == 328)return 1;
-    else return 0;
+    list *bck ;
+    bck = pot;
+    if(analyse_AddExp()){
+        printf("[INFO]      advance AddExp\n");
+    }else{
+        printf("[UNMATCH]   unmatch AddExp\n");
+        rollback(bck);
+        return 0;
+    }
+    advance();
+    bck = pot;
+    if(tok==Y_LESS||tok == Y_GREAT || tok == Y_LESSEQ || tok == Y_GREATEQ){
+        printf("[INFO]      advance GREAT|LESS|LESSEQ|GREATEQ\n");
+        advance();
+        bck = pot;
+        if(analyse_RelExp()){
+            printf("[INFO]      advance RelExp\n");
+            return 1;
+        }else{
+            printf("[UNMATCH]   unmatch RelExp\n");
+            rollback(bck);
+            return 0;
+        }
+    }else{
+        printf("[UNMATCH]   LESS|GREAT|LESSEQ|GREATEQ\n");
+        rollback(bck->lst);
+    }
+    return 1;
 }
 /*functions program end*/
 
