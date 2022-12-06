@@ -11,36 +11,10 @@
 #include <string.h>
 
 #define DECL_PART
-#define DEBUG_OUT
+// #define DEBUG_OUT
 // #define DEBUG
 #define WHILE
 #define DEBUG_LOG
-
-#ifdef DEBUG_LOG
-void info(char str[]){
-    printf("[INFO]      %s\n",str);
-    return ;
-}
-void path(char strFrom[],char strTo[]){
-    printf("[PATH]      %s   --->   %s\n",strFrom,strTo);
-    return ;
-}
-void fail(char strFrom[],char strTo[]){
-    printf("[FAIL]      %s   \\->   %s\n",strFrom,strTo);
-    return ;
-}
-void error(char str[]){
-    printf("[ERROR]     %s\n",str);
-    return ;
-}
-void unmatch(char str[]){
-    printf("[UNMATCH]   %s\n",str);
-    return ;
-}
-void pullin(char str[]){
-    printf("[PULLIN]    %s\n",str);
-}
-#endif
 
 /*Linked List part begin*/
 typedef struct list_node
@@ -147,6 +121,43 @@ void rollback(list *p){
     tok = p->val;
     return ;
 }
+
+void info(char str[]){
+    #ifdef DEBUG_LOG
+    printf("[INFO]      %s  %s\n",str,s_now);
+    #endif
+    return ;
+}
+void path(char strFrom[],char strTo[]){
+    #ifdef DEBUG_LOG
+    printf("[PATH]      %s   --->   %s  %s\n",strFrom,strTo,s_now);
+    #endif
+    return ;
+}
+void fail(char strFrom[],char strTo[]){
+    #ifdef DEBUG_LOG
+    printf("[FAIL]      %s   \\->   %s  %s\n",strFrom,strTo,s_now);
+    #endif
+    return ;
+}
+void error(char str[]){
+    #ifdef DEBUG_LOG
+    printf("[ERROR]     %s\n",str);
+    #endif
+    return ;
+}
+void unmatch(char str[]){
+    #ifdef DEBUG_LOG
+    printf("[UNMATCH]   %s  %s\n",str,s_now);
+    #endif
+    return ;
+}
+void pullin(char str[]){
+    #ifdef DEBUG_LOG
+    printf("[PULLIN]    %s  %s\n",str,s_now);
+    #endif
+}
+
 /*function decl part begin*/
 #ifdef DECL_PART
 /*
@@ -294,40 +305,42 @@ int analyse_ConstDecl() {
     list *bck;
     bck = pot;
     if(tok != Y_CONST){
-        printf("[UNMATCH]   need a Y_CONST\n");
+        unmatch("ConstDecl:Y_CONST");
         return 0;
     }
-    printf("[INFO]      advance Const\n");
+    pullin("ConstDecl:Y_CONST");
     advance();
     bck = pot;
     if(analyse_Type()) {
-        printf("[INFO]      advance Type\n");
+        path("ConstDecl","Type");
     }else{
-        printf("[UNMATCH]   need a Type\n");
+        fail("ConstDecl","Type");
+        rollback(bck);
         return 0;
     }
     advance();
     bck = pot;
     if(analyse_ConstDef()){
-        printf("[INFO]      advance ConstDef\n");
+        path("ConstDecl","ConstDef");
     }else {
-        printf("[UNMATCH]   need ConstDef\n");
+        fail("ConstDecl","ConstDef");
         rollback(bck);
         if(analyse_ConstDefs()){
-            printf("[INFO]      advace ConstDefs\n");
+            path("ConstDecl","ConstDefs");
         }
         else {
-            printf("[UNMATCH]   need ConstDefs\n");
+            fail("ConstDecl","ConstDefs");
+            rollback(bck);
             return 0;
         }
     }
     advance();
     bck = pot;
     if(tok!=Y_SEMICOLON){
-        printf("[UNMATCH]   need Semicolon\n");
+        unmatch("ConstDecl:Y_SEMICOLON");
         return 0;
     }else{
-        printf("[INFO]      advance Semicolon\n");
+        pullin("ConstDecl:Y_SEMICOLON");
         return 1;
     }
 }
@@ -419,32 +432,35 @@ int analyse_FuncParams(){
     list *bck;
     bck = pot;
     if(analyse_FuncParam()){
-        printf("[INFO]      advance FuncParam\n");
+        path("FuncParams","FuncParam");
     }else{
-        printf("[UNMATCH]   need FuncParam\n");
+        fail("FuncParams","FuncParam");
+        rollback(bck);
         return 0;
     }
     advance();
     bck = pot;
     if(tok!=Y_COMMA){
         rollback(bck->lst);
-        printf("[INFO]      advance e\n");
+        unmatch("FuncParams:Y_COMMA");
         return 1;
     }else{
         advance();
         bck = pot;
         if(analyse_FuncParam()){
-            printf("[INFO]      advance FuncParam\n");
+            path("FuncParams","FuncParam");
         }else{
-            printf("[UNMATCH]   need FuncParam\n");
+            fail("FuncParams","FuncParam");
+            rollback(bck);
             return 0;
         }
         advance();
         bck = pot;
         if(analyse_FuncParams()){
-            printf("[INFO]      advance FuncParams\n");
+            path("FuncParams","FuncParams");
         }else{
-            printf("[UNMATCH]   need FuncParam\n");
+            fail("FuncParams","FuncParams");
+            rollback(bck);
             return 0;
         }
     }
@@ -964,6 +980,7 @@ int analyse_Stmt(){
     }
     if(analyse_Exp()){
         path("Stmt","Exp");
+        printf("*********************************");
         advance();
         bck = pot;
         if(tok != Y_SEMICOLON){
@@ -1099,8 +1116,10 @@ int analyse_Stmt(){
             path("Stmt","Exp");
         }else{
             fail("Stmt","Exp");
-            rollback(bck);
+            rollback(bck->lst);
         }
+        advance();
+        bck = pot;
         if(tok != Y_SEMICOLON){
             unmatch("Stmt:Y_SEMICOLON");
             return 0;
@@ -1119,6 +1138,7 @@ int analyse_AddExp(){
     }else{
         fail("AddExp","MulExp");
         rollback(bck);
+        return 0;
     }
     if(tok  == Y_ADD){
         pullin("AddExp:Y_ADD");
@@ -1193,9 +1213,10 @@ int analyse_MulExp(){
     list *bck;
     bck = pot;
     if(analyse_UnaryExp()){
-        printf("[INFO]      advance UnaryExp\n");
+        path("MulExp","UnaryExp");
+        return 1;
     }else{
-        printf("[UNMATCH]   unmatch UnaryExp\n");
+        fail("MuilExp","UnaryExp");
         rollback(bck);
         return 0;
     }
