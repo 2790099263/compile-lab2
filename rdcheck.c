@@ -348,50 +348,52 @@ int analyse_VarDecl() {
     list *bck;
     bck = pot;
     if(analyse_Type()){
-        printf("[INFO]      advance Type\n");
+        path("VarDecl","Type");
     }else{
-        printf("[UNMATCH]   need a Type\n");
+        fail("VarDecl","Type");
+        rollback(bck);
         return 0;
     }
     advance();
     bck = pot;
     if(analyse_VarDef()) {
-        printf("[INFO]      advance Vardef\n");
+        path("VarDecl","VarDef");
     }else{
-        printf("[UNMATCH]   need a Vardef\n");
+        fail("VarDecl","VarDef");
+        rollback(bck);
         return 0;
     }
     advance();
     bck = pot;
     if(analyse_VarDecls()) {
-        printf("[INFO]      advance VarDecls\n");
+        path("VarDecl","VarDecls");
     }else{
-        printf("[UNMATCH]   need a VarDecls\n");
+        fail("VarDecl","VarDecls");
         rollback(bck->lst);
     }
     advance();
     bck = pot;
     if(tok!=Y_SEMICOLON){
-        printf("[UNMATCH]   need a Semicolon\n");
+        unmatch("VarDecl:Y_SEMICILON");
         return 0;
     }
-    printf("[INFO]      advance semicolon\n");
+    pullin("VarDecl:Y_SEMICILON");
     return 1;
 }
 int analyse_Type() {
     switch (tok)
     {
     case Y_INT:
-        printf("[INFO]      advance Int\n");
+        pullin("Type:Y_INT");
         break;
     case Y_FLOAT:
-        printf("[INFO]      advance Float\n");
+        pullin("Type:Y_FLOAT");
         break;
     case Y_VOID:
-        printf("[INFO]      advance void\n");
+        pullin("Type:Y_VOID");
         break;
     default:
-        printf("[UNMATCH]   need INT | FLOAT | VOID\n");
+        unmatch("Type: INT|FLOAT|VOID");
         return 0;
         break;
     }
@@ -401,24 +403,25 @@ int analyse_Block() {
     list *bck;
     bck = pot;
     if(tok!=Y_LBRACKET){
-        printf("[UNMATCH]   need LBracket\n");
+        unmatch("Block:Y_LBRACKET");
         return 0;
     }
-    printf("[INFO]      advance LBracket\n");
+    pullin("Block:Y_LBRACKET");
     advance();
     bck = pot;
     if(analyse_BlockItems()){
-        printf("[INFO]  advance blockitems\n");
+        path("Block","BlockItems");
     }else{
         rollback(bck->lst);
-        printf("[UNMATCH]   unmatch blockitems\n");
+        fail("Block","BlockItems");
     }
     advance();
     bck = pot;
     if(tok!=Y_RBRACKET){
-        printf("[UNMATCH]   need a Rbracket\n");
+        unmatch("Block:Y_RBRACKET");
         return 0;
     }
+    pullin("Block:Y_RBRACKET");
     return 1;
 }
 /*
@@ -470,31 +473,32 @@ int analyse_ConstDef(){
     list *bck;
     bck = pot;
     if(tok != Y_ID){
-        printf("[UNMATECH]  need ID\n");
+        unmatch("Const:Y_ID");
         return 0;
     }
-    printf("[INFO]      advance ID\n");
+    pullin("Const:Y_ID");
     advance();
     bck = pot;
     if(analyse_ConstExps()){
-        printf("[INFO]      advance ConstExps\n");
+        path("ConstDef","ConstExps");
     }else{
-        printf("[UNMATCH]   unmatched ConstExps\n");
+        fail("ConstDef","ConstExps");
         rollback(bck->lst);
     }
     advance();
     bck = pot;
     if(tok!=Y_ASSIGN){
-        printf("[UNMATCH]   need ASSIGN\n");
+        unmatch("ConstDef:Y_ASSIGN");
         return 0;
     }
-    printf("[INFO]      advance ASSIGN\n");
+    pullin("ConstDef:Y_ASSIGN");
     advance();
     bck = pot;
     if(analyse_ConstInitVal()){
-        printf("[INFO]      advance ConstInitVal\n");
+        path("ConstDef","ConstInitVal");
     }else{
-        printf("[UNMATCH]   need ConstInitVal\n");
+        fail("ConstDef","ConstInitVal");
+        rollback(bck);
         return 0;
     }
     return 1;
@@ -503,48 +507,51 @@ int analyse_ConstDefs(){
     list *bck;
     bck = pot;
     if(analyse_ConstDef()){
-        printf("[INFO]      advance ConstDef\n");
+        path("ConstDefs","ConstDef");
         advance();
         bck = pot;
         if(tok!=Y_COMMA){
-            printf("[UNMATCH]   need Comma\n");
+            unmatch("ConstDefs:Y_COMMA");
             return 0;
         }
-        printf("[INFO]      advance Comma\n");
+        pullin("ConstDefs:Y_COMMA");
         advance();
         bck = pot;
         if(analyse_ConstDef()){
-            printf("[INFO]      advance ConstDef\n");
+            path("ConstDefs","ConstDef");
         }else{
-            printf("[UNMATCH]   need ConstDef\n");
+            fail("ConstDefs","ConstDef");
             return 0;
         }
     }else{
-        printf("[UNMATCH]   need ConstDef\n");
+        fail("ConstDefs","ConstDef");
+        rollback(bck);
         return 0;
     }
     advance();
     bck = pot;
     if(tok!=Y_COMMA){
-        printf("[INFO]      need Comma\n");
+        unmatch("ConstDefs:Y_COMMA");
         rollback(bck->lst);
         return 1;
     }
-    printf("[INFO]      advance Comma\n");
+    pullin("ConstDefs:Y_COMMA");
     advance();
     bck =pot;
     if(analyse_ConstDef()){
-        printf("[INFO]      advance ConstDef\n");
+        path("ConstDefs","ConstDef");
     }else{
-        printf("[UNMATCH]   need ConstDef\n");
+        fail("ConstDefs","ConstDef");
+        rollback(bck);
         return 0;
     }
     advance();
     bck = pot;
     if(analyse_ConstDefs()){
-        printf("[INFO]      advance ConstDefs\n");
+        path("ConstDefs","ConstDef");
     }else{
-        printf("[UNMATCH]   need ConstDefs\n");
+        fail("ConstDefs","ConstDef");
+        rollback(bck);
         return 0;
     }
     return 1;
@@ -553,48 +560,50 @@ int analyse_VarDef(){
     list *bck;
     bck = pot;
     if (tok!=Y_ID){
-        printf("[INFO]      need ID\n");
+        unmatch("VarDef:Y_ID");
         return 0;
     }
-    printf("[INFO]      advance ID\n");
+    pullin("VarDef:Y_ID");
     advance();
     bck = pot;
     if(tok == Y_ASSIGN){
-        printf("[INFO]      advance Assin\n");
+        pullin("VarDef:Y_ASSIGN");
         advance();
         bck = pot;
         if(analyse_InitVal()){
-            printf("[INFO]      advance InitVal\n");
+            path("VarDef","InitVal");
         }else{
-            printf("[INFO]      need InitVal\n");
+            fail("VarDef","InitVal");
             return 0;
         }
         return 1;
     }else{
-        printf("[UNMATCH]   unmatch Assign\n");
+        unmatch("VarDef:Y_ASSIGN");
         rollback(bck->lst);
     }
     advance();
     bck = pot;
     if(analyse_ConstExps()){
-        printf("[INFO]      advance ConstExps\n");
+        path("VarDef","ConstExps");
         advance();
         bck = pot;
         if(tok != Y_ASSIGN){
             rollback(bck->lst);
-            printf("[UNMATCH]   unmatch Assign\n");
+            unmatch("Vardef:Y_ASSIGN");
             return 1;
         }
-        printf("[INFO]      advance Assign\n");
+        pullin("VarDef:Y_ASSIGN");
         advance();
         bck = pot;
         if(analyse_InitVal()){
-            printf("[INFO]      advance InitVal\n");
+            path("VarDef","InitVal");
         }else{
-            printf("[UNMATCH]   unmatch InitVal\n");
+            fail("VarDef","InitVal");
+            rollback(bck);
             return 0;
         }
     }else{
+        fail("VarDef","ConstExps");
         rollback(bck->lst);
         return 1;
     }
@@ -604,24 +613,25 @@ int analyse_VarDecls(){
     list *bck;
     bck = pot;
     if(tok!=Y_COMMA){
-        printf("[UNMATCH]   need a Comma\n");
+        unmatch("VarDecls:Y_COMMA");
         return 0;
     }
-    printf("[INFO]      advance Comma\n");
+    pullin("VarDecls:Y_COMMA");
     advance();
     bck = pot;
     if(analyse_VarDef()){
-        printf("[INFO]      advance VarDef\n");
+        path("Vardecls","VarDef");
     }else{
-        printf("[INFO]      need VarDef\n");
+        fail("VarDecls","VarDef");
+        rollback(bck);
         return 0;
     }
     advance();
     bck = pot;
     if(analyse_VarDecls()){
-        printf("[INFO]      advance VarDecls\n");
+        path("VarDecls","VarDecls");
     }else{
-        printf("[UNMATCH]   unmatch VarDecls\n");
+        fail("VarDecls","VarDecls");
         rollback(bck->lst);
     }
     return 1;
@@ -630,18 +640,19 @@ int analyse_BlockItems(){
     list *bck;
     bck = pot;
     if(analyse_BlockItem()){
-        printf("[INFO]      advance BlockItem\n");
+        path("BlockItems","BlockItem");
     }else{
-        printf("[UNMATCH]   need BlockItem\n");
+        fail("BlockItems","BlockItem");
+        rollback(bck);
         return 0;
     }
     advance();
     bck = pot;
     if(analyse_BlockItems()){
-        printf("[INFO]      advance BlockItem\n");
+        path("BockItems","BlockItems");
     }else{
         rollback(bck->lst);
-        printf("[UNMATCH]   unmatch BlockItem\n");
+        fail("BlockItems","BlockItems");
     }
     return 1;
 }
@@ -649,47 +660,48 @@ int analyse_FuncParam(){
     list *bck;
     bck = pot;
     if(analyse_Type()){
-        printf("[INFO]      advance Type\n");
+        path("FuncParam","Type");
     }else{
-        printf("[UNMATCH]   unmatch Type\n");
+        fail("FuncParam","Type");
+        rollback(bck);
         return 0;
     }
     advance();
     bck = pot;
     if(tok != Y_ID){
-        printf("[UNMATCH]   unmatch Y_ID\n");
+        unmatch("FuncParam:Y_ID");
         return 0;
     }
-    printf("[INFO]      advance Y_ID\n");
+    pullin("FuncParam:Y_ID");
     advance();
     bck = pot;
     if(analyse_ArraySubscripts()){
-        printf("[INFO]      advance ArraySubScripts\n");
+        path("FuncParam","ArraySubscripts");
         return 1;
     }else{
-        printf("[UNMATCH]   unmatch ArraySubScripts\n");
+        fail("FuncParam","ArraySubscripts");
         rollback(bck->lst);
     }
     advance();
     bck = pot;
     if(tok!=Y_LSQUARE){
-        printf("[UNMATCH]   unmatch LSquare\n");
+        unmatch("FuncParam:Y_LSQUARE");
         return 1;
     }
-    printf("[INFO]      advance LSquare\n");
+    pullin("FuncParam:Y_LSQUARE");
     advance();
     bck = pot ;
     if(tok!=Y_RSQUARE){
-        printf("[UNMATCH]   unmatch RSquare\n");
+        unmatch("FuncParam:Y_REQUARE");
         return 0;
     }
-    printf("[INFO]      advance RSquare\n");
+    pullin("FuncParam:Y_REQUARE");
     advance();
     bck = pot;
     if(analyse_ArraySubscripts()){
-        printf("[INFO]      advance ArraySubscripts\n");
+        path("FuncParam","ArraySubscripts");
     }else{
-        printf("[UNMATCH]   unmatc ArraySubScripts\n");
+        fail("FuncParam","ArraySubscripts");
         rollback(bck->lst);
     }
     return 1;
@@ -698,31 +710,32 @@ int analyse_ConstExps(){
     list *bck;
     bck = pot;
     if(tok != Y_LSQUARE){
-        printf("[UNMATCH]   unmatch Lsquare\n");
+        unmatch("ConstExps:Y_LSQUARE");
         return 0;
     }
-    printf("[INFO]      advance Lsquare\n");
+    pullin("ConstExps:Y_LSQUARE");
     advance();
     bck = pot;
     if(analyse_ConstExp()){
-        printf("[INFO]      advance ConstExp\n");
+        path("ConstExps","ConstExp");
     }else{
-        printf("[UNMATCH]   need ConstExp\n");
+        fail("ConstExps","ConstExp");
+        rollback(bck);
         return 0;
     }
     advance();
     bck = pot;
     if(tok!=Y_RSQUARE){
-        printf("[UNMATCH]   unmatch Rsquare\n");
+        unmatch("ConstExps:Y_RSQUARE");
         return 0;
     }
-    printf("[INFO]      advance Rsquare\n");
+    pullin("ConstExps:Y_RSQUARE");
     advance();
     bck = pot;
     if(analyse_ConstExps()){
-        printf("[INFO]      advance ConstExp\n");
+        path("ConstExps","ConstExps");
     }else{
-        printf("[UNMATCH]   need ConstExps\n");
+        fail("ConstExps","ConstExps");
         rollback(bck->lst);
     }
     return 1;
@@ -731,102 +744,103 @@ int analyse_ConstInitVal(){
     list *bck;
     bck = pot;
     if(analyse_ConstExp()){
-        printf("[INFO]      advance ConstExp\n");
+        path("ConstInitVal","ConstExp");
         return 1;
     }else{
-        printf("[UNMATCH]   need ConstExp\n");
+        fail("ConstInitVal","ConstExp");
         rollback(bck->lst);
     }
     advance();
     bck = pot;
     if(tok!=Y_LBRACKET){
-        printf("[UNMATCH]   need Lbracket\n");
+        unmatch("ConstInitVal:Y_LBRACKET");
         return 0;
     }
-    printf("[INFO]      advance Lbracket\n");
+    pullin("ConstInitVal:Y_LBRACKET");
     advance();
     bck = pot;
     if(analyse_ConstInitVal()){
-        printf("[INFO]      advance ConstInitVal\n");
+        path("ConstInitVal","ConstInitVal");
         advance();
         bck = pot;
         if(analyse_ConstInitVals()){
-            printf("[INFO]      advance ConstInitVals\n");
+            path("ConstInitVal","ConstInitVals");
         }else{
-            printf("[UNMATCH]   need ConstInitVals\n");
+            fail("ConstInitVal","ConstInitVal");
             rollback(bck->lst);
         }
     }else{
-        printf("[UNMATCH]   unmatch ConstInitVal\n");
+        fail("ConstInitVal","ConstInitVal");
         rollback(bck->lst);
     }
     advance();
     bck = pot;
     if(tok != Y_RBRACKET){
-        printf("[UNMATCH]   need Rbracket\n");
+        unmatch("ConstInitVal:Y_BRACKET");
         return 0;
     }
+    pullin("ConstInitVal:Y_BRACKET");
     return 1;
 }
 int analyse_InitVal(){
     list *bck;
     bck = pot;
     if(analyse_Exp()){
-        printf("[INFO]      advance Exp\n");
+        path("InitVal","Exp");
         return 1;
     }else{
-        printf("[UNMATCH]   unmatch Exp\n");
+        fail("InitVal","Exp");
         rollback(bck->lst);
     }
     advance();
     bck = pot;
     if(tok != Y_LBRACKET){
-        printf("[UNMATCH]   unmatch Lbracket\n");
+        unmatch("InitVal:Y_LBRACKET");
         return 0;
     }
-    printf("[INFO]      advance Lbracket\n");
+    pullin("InitVal:Y_LBRACKET");
     advance();
     bck = pot;
     if(analyse_InitVal()){
-        printf("[INFO]      advance InitVal\n");
+        path("InitVal","InitVal");
         advance();
         bck = pot;
         if(analyse_InitVals()){
-            printf("[INFO]      advance InitVals\n");
+            path("InitVal","InitVals");
         }else{
-            printf("[UNMATCH]   unmatch InitVals\n");
+            fail("InitVal","InitVals");
             rollback(bck->lst);
         }
     }else{
-        printf("[UNMATCH]   unmatch InitVal\n");
+        fail("InitVal","InitVal");
         rollback(bck->lst);
     }
     advance();
     bck = pot;
     if(tok != Y_RBRACKET){
-        printf("[UNMATCH]   unmatch Rbracket\n");
+        unmatch("InitVal:Y_RBRACKET");
         return 0;
     }
-    printf("[INFO]      advance Rbracket\n");
+    pullin("InitVal:Y_RBRACKET");
     return 1;
 }
 int analyse_BlockItem(){
     list *bck ;
     bck = pot;
     if(analyse_Decl()){
-        printf("[INFO]      advance Decl\n");
+        path("BlockItem","Decl");
         return 1;
     }else{
-        printf("[UNMATCH]   unmatch Decl\n");
+        fail("BlockItem","Decl");
         rollback(bck->lst);
     }
     advance();
     bck = pot;
     if(analyse_Stmt()){
-        printf("[INFO]      advance Stmt\n");
+        path("BlockItem","Stmt");
         return 1;
     }else{
-        printf("[UNMATCH]   need Stmt\n");
+        fail("BlockItem","Stmt");
         rollback(bck->lst);
     }
     return 0;
@@ -906,10 +920,10 @@ int analyse_Exp(){
     list *bck;
     bck = pot;
     if(analyse_AddExp()){
-        printf("[INFO]      advance AddExp\n");
+        path("Exp","AddExp");
         return 1;
     }else{
-        printf("[UNMATCH]   unmatch AddExp\n");
+        fail("Exp","AddExp");
         rollback(bck);
         return 0;
     }
@@ -918,25 +932,25 @@ int analyse_InitVals(){
     list *bck ;
     bck = pot;
     if(tok != Y_COMMA){
-        printf("[UNMATCH]   unmatch Comma\n");
+        unmatch("InitVals:Y_COMMA");
         return 0;
     }
-    printf("[INFO]      advance Comma\n");
+    pullin("InitVals:Y_COMMA");
     advance();
     bck = pot;
     if(analyse_InitVal()){
-        printf("[INFO]      advance InitVal\n");
+        path("InitVals","InitVal");
     }else{
-        printf("[UNMATCH]   unmatch InitVal\n");
+        fail("InitVals","InitVal");
         rollback(bck);
         return 0;
     }
     advance();
     bck = pot;
     if(analyse_InitVals()){
-        printf("[INFO]      advance InitVals\n");
+        path("InitVals","InitVals");
     }else{
-        printf("[UNMATCH]   unmatch InitVals\n");
+        fail("InitVals","InitVals");
         rollback(bck->lst);
     }
     return 1;
@@ -944,43 +958,38 @@ int analyse_InitVals(){
 int analyse_Stmt(){
     list *bck ;
     bck = pot ;
-    if(tok == Y_SEMICOLON){
-        printf("[INFO]      advance Semicolon\n");
-        return 1;
-    }
     if(analyse_LVal()){
-        printf("[INFO]      advance Lval\n");
+        path("Stmt","LVal");
         advance();
         bck = pot;
         if(tok != Y_ASSIGN){
-            printf("[UNMATCH]   unmatch Assign\n");
+            unmatch("Stmt:Y_ASSIGN");
             return 0;
         }
-        printf("[INFO]      advance Assign\n");
+        pullin("Stmt:Y_ASSIGN");
         advance();
         bck = pot;
         if(analyse_Exp()){
-            printf("[INFO]      advance Exp\n");
+            path("Stmt","Exp");
         }else{
-            printf("[UNMATCH]   unmatch Exp\n");
+            fail("Stmt","Exp");
             rollback(bck);
             return 0;
         }
         advance();
         bck = pot;
         if(tok != Y_SEMICOLON){
-            printf("[UNMATCH]   unmatch Semicolon\n");
+            unmatch("Stmt:Y_SEMICOLON");
             return 0;
         }
-        printf("[INFO]      advance Semicolon\n");
+        pullin("Stmt:Y_SEMICOLON");
         return 1;
     }else{
-        printf("[UNMATCH]   unmatch LVal\n");
+        fail("Stmt","LVal");
         rollback(bck);
     }
     if(analyse_Exp()){
         path("Stmt","Exp");
-        printf("*********************************");
         advance();
         bck = pot;
         if(tok != Y_SEMICOLON){
@@ -994,76 +1003,80 @@ int analyse_Stmt(){
         rollback(bck);
     }
     if(analyse_Block()){
-        printf("[INFO]      advance Block \n");
+        path("Stmt","Block");
         return 1;
     }else{
-        printf("[UNMATCH]   unmatch Block\n");
+        fail("Stmt","Block");
         rollback(bck);
     }
-    if(tok == Y_WHILE){
-        printf("[INFO]      advance While\n");
+    if(tok == Y_SEMICOLON){
+        pullin("Stmt:Y_SEMICOLON");
+        return 1;
+    }
+    else if(tok == Y_WHILE){
+        pullin("Stmt:Y_WHILE");
         advance();
         bck = pot;
         if(tok != Y_LPAR){
-            printf("[UNMATCH]   unmatch LPAR\n");
+            unmatch("Stmt:Y_LPAR");
             return 0;
         }
-        printf("[INFO]      advance LPAR\n");
+        pullin("Stmt:Y_LPAR");
         advance();
         bck = pot;
         if(analyse_LOrExp()){
-            printf("[INFO]      advance LOrExp\n");
+            path("Stmt","LOrExp");
         }else{
-            printf("[UNMATCH]   unmatch LorExp\n");
+            fail("Stmt","LOrExp");
             rollback(bck);
             return 0;
         }
         advance();
         bck = pot;
         if(tok != Y_RPAR){
-            printf("[UNMATCH]   unmatch RPAR\n");
+            unmatch("Stmt:Y_RPAR");
             return 0;
         }
-        printf("[INFO]      advance RPAR\n");
+        pullin("Stmt:Y_RPAR");
         advance();
         bck = pot;
         if(analyse_Stmt()){
-            printf("[INFO]      advance Stmt\n");
+            path("Stmt","Stmt");
         }else{
-            printf("[UNMATCH]   unmatch Stmt\n");
+            fail("Stmt","Stmt");
             return 0;
         }
         return 1;
     }
-    if(tok == Y_IF){
-        printf("[INFO]      advance IF\n");
+    else if(tok == Y_IF){
+        pullin("Stmt:Y_IF");
         advance();
         bck = pot ;
         if(tok != Y_LPAR){
-            printf("[UNMATCH]   unmatch LPAR\n");
+            unmatch("Stmt:Y_LPAR");
             return 0;
         }
-        printf("[INFO]      advance LPAR\n");
+        pullin("Stmt:Y_LPAR");
         advance();
         bck = pot;
         if(analyse_LOrExp()){
-            printf("[INFO]      advance LorExp\n");
+            path("Stmt","LOrExp");
         }else{
-            printf("[UNMATCH]   unmatch LorExp\n");
+            fail("Stmt","LOrExp");
             return 0;
         }
         advance();
         bck = pot;
         if(tok != Y_RPAR){
-            printf("[UNMATCH]   unmatch RPAR\n");
+            unmatch("Stmt:Y_RPAR");
             return 0;
         }
-        printf("[INFO]      advance Rpar\n");
+        pullin("Stmt:Y_RPAR");
         advance();
         if(analyse_Stmt()){
-            printf("[INFO]      advance Stmt");
+            path("Stmt","Stmt");
         }else{
-            printf("[UNMATCH]   unmatch Stmt\n");
+            fail("Stmt","Stmt");
             rollback(bck);
             return 0;
         }
@@ -1071,41 +1084,41 @@ int analyse_Stmt(){
         bck = pot;
         if(tok !=Y_ELSE){
             rollback(bck->lst);
-            printf("[UNMATCH]   unmatch Else\n");
+            unmatch("Stmt:Y_ELSE");
             return 1;
         }
-        printf("[INFO]      advance Else\n");
+        pullin("Stmt:Y_ELSE");
         advance();
         bck = pot;
         if(analyse_Stmt()){
-            printf("[INFO]      advance Stmt\n");
+            path("Stmt","Stmt");
         }else{
-            printf("[UNMATCH]   unmatch Stmt\n");
+            fail("Stmt","Stmt");
             rollback(bck);
             return 0;
         }
         return 1;
     }
     if(tok == Y_BREAK){
-        printf("[INFO]      advance Break\n");
+        pullin("Stmt:Y_BREAK");
         advance();
         bck = pot;
         if(tok != Y_SEMICOLON){
-            printf("[UNMATCH]   unmatch Semicolon\n");
+            unmatch("Stmt:Y_SEMICOLON");
             return 0;
         }
-        printf("[INFO]      advance semicolon\n");
+        pullin("Stmt:Y_SEMICOLON");
         return 1;
     }
     if(tok == Y_CONTINUE){
-        printf("[INFO]      advance Continue\n");
+        pullin("Stmt:Y_CONTINUE");
         advance();
         bck = pot;
         if(tok != Y_SEMICOLON){
-            printf("[UNMATCH]   unmatch Semicolon\n");
+            unmatch("Stmt:Y_SEMICOLON");
             return 0;
         }
-        printf("[INFO]      advance Semicolon\n");
+        pullin("Stmt:Y_SEMICOLON");
         return 1;
     }
     if(tok == Y_RETURN){
@@ -1165,17 +1178,17 @@ int analyse_LVal(){
     list *bck ;
     bck = pot;
     if(tok != Y_ID){
-        printf("[UNMATCH]   unmatch ID\n");
+        unmatch("LVal:Y_ID");
         return 0;
     }
-    printf("[INFO]      advance ID");
+    pullin("LVal:Y_ID");
     advance();
     bck = pot;
     if(analyse_ArraySubscripts()){
-        printf("[INFO]      advance ArraySubscripts\n");
+        path("LVal","ArraySubScripts");
         return 1;
     }else{
-        printf("[UNMATCH]   unmatch ArraySubscripts\n");
+        fail("LVal","ArraySubScripts");
         rollback(bck->lst);
     }
     return 1;
@@ -1184,27 +1197,27 @@ int analyse_LOrExp(){
     list *bck;
     bck = pot;
     if(analyse_LAndExp()){
-        printf("[INFO]      advance LandExp\n");
+        path("LOrExp","LAndExp");
     }else{
-        printf("[UNMATCH]   unmatch LAndExp\n");
+        fail("LOrExp","LAndExp");
         rollback(bck);
         return 0;
     }
     advance();
     bck = pot;
     if(tok == Y_OR){
-        printf("[INFO]      advance OR\n");
+        pullin("LOrExp:Y_OR");
         advance();
         bck = pot;
         if(analyse_LOrExp()){
-            printf("[INFO]      advance LorExp\n");
+            path("LOrExp","LOrExp");
         }else{
-            printf("[UNMATCH]   need LOrExp\n");
+            fail("LOrExp","LOrExp");
             rollback(bck);
             return 0;
         }
     }else{
-        printf("[UNMATCH]   unmatch OR\n");
+        unmatch("LOrExp:Y_OR");
         rollback(bck->lst);
     }
     return 1;
@@ -1223,49 +1236,49 @@ int analyse_MulExp(){
     advance();
     bck = pot;
     if(tok == Y_MUL){
-        printf("[INFO]      advance MUL\n");
+        pullin("MulExp:Y_MUL");
         advance();
         bck = pot;
         if(analyse_UnaryExp()){
-            printf("[INFO]      advance UnaryExp\n");
+            path("MulExp","UnaryExp");
         }else{
-            printf("[UNMATCH]   unmatch UnaryExp\n");
+            fail("MulExp","UnaryExp");
             rollback(bck);
             return 1;
         }
     }else if(tok == Y_DIV){
-        printf("[INFO]      advance DIV\n");
+        pullin("MulExp:Y_DIV");
         advance();
         bck = pot;
         if(analyse_UnaryExp()){
-            printf("[INFO]      advance UnaryExp\n");
+            path("MulExp","UnaryExp");
         }else{
-            printf("[UNMATCH]   unmatch UnaryExp\n");
+            fail("MulExp","UnaryExp");
             rollback(bck);
             return 1;
         }
     }else if(tok == Y_MODULO){
-        printf("[INFO]      advance MODULO\n");
+        pullin("MulExp:Y_MOUDLO");
         advance();
         bck = pot;
         if(analyse_UnaryExp()){
-            printf("[INFO]      advance UnaryExp\n");
+            path("MulExp","UnaryExp");
         }else{
-            printf("[UNMATCH]   unmatch UnaryExp\n");
+            path("MulExp","UnaryExp");
             rollback(bck);
             return 1;
         }
     }else{
-        printf("[UNMATCH]   need MUL|DIV|MODULO\n");
+        unmatch("MulExp:MUL|DIV|MODULO");
         rollback(bck->lst);
         return 1;
     }
     advance();
     bck = pot;
     if(analyse_MulExp()){
-        printf("[INFO]      advance MulExp\n");
+        path("MulExp","MulExp");
     }else{
-        printf("[UNMATCH]   unmatch MulExp\n");
+        fail("MulExp","MulExp");
         rollback(bck);
         return 0;
     }
@@ -1275,28 +1288,28 @@ int analyse_LAndExp(){
     list *bck ;
     bck = pot;
     if(analyse_EqExp()){
-        printf("[INFO]      advance EqExp\n");
+        path("LAndExp","EqExp");
     }else{
-        printf("[UNMATCH]   unmatch EqExp\n");
+        fail("LAndExp","EqExp");
         rollback(bck);
         return 0;
     }
     advance();
     bck =pot;
     if(tok == Y_ADD){
-        printf("[INFO]      advance ADD\n");
+        pullin("LAndExp:Y_ADD");
         advance();
         bck =pot;
         if(analyse_LAndExp()){
-            printf("[INFO]      advance LAndExp\n");
+            path("LandExp","LandExp");
         }else{
-            printf("[UNMATCH]   unmatch LAndExp\n");
+            fail("LandExp","LandExp");
             rollback(bck);
             return 0;
         }
         
     }else{
-        printf("[UNMATCH]   unmatch ADD\n");
+        unmatch("LAndExp:Y_ADD");
         rollback(bck->lst);
     }
     return 1;
@@ -1305,72 +1318,72 @@ int analyse_UnaryExp(){
     list *bck ;
     bck = pot;
     if(analyse_PrimaryExp()){
-        printf("[INFO]      advance PrimaryExp\n");
+        path("UnaryExp","PrimaryExp");
         return 1;
     }else{
-        printf("[UNMATCH]   unmatch PrimaryExp\n");
+        fail("UnaryExp","PrimaryExp");
         rollback(bck);
     }
     if(tok == Y_ID){
-        printf("[INFO]      advance Y_ID\n");
+        pullin("UnaryExp:Y_ID");
         advance();
         bck = pot;
         if(tok !=Y_LPAR){
-            printf("[UNMATCH]   unmatch LPAR\n");
+            unmatch("UnaryExp:Y_LPAR");
             return 0;
         }
-        printf("[INFO]      advance LPAR\n");
+        pullin("UnaryExp:Y_LPAR");
         advance();
         bck = pot;
         if(analyse_CallParams()){
-            printf("[INFO]      advance CallParams\n");
+            path("UnaryExp","CallParams");
         }else{
-            printf("[UNMATCH]   unmatch CallParams\n");
+            fail("UnaryExp","CallParams");
             rollback(bck->lst);
         }
         advance();
         bck = pot;
         if(tok != Y_RPAR){
-            printf("[UNMATCH]   unmatch Y_RPAR\n");
+            unmatch("UnaryExp:Y_RPAR");
             return 0;
         }
-        printf("[INFO]      advance RPAR\n");
+        pullin("UnaryExp:Y_RPAR");
         return 1;
     }
     if(tok == Y_ADD){
-        printf("[INFO]      advance Y_ADD\n");
+        pullin("UnaryExp:Y_ADD");
         advance();
         bck = pot;
         if(analyse_UnaryExp()){
-            printf("[INFO]      advance UnaryExp\n");
+            path("UnaryExp","UnaryExp");
         }else{
-            printf("[UNMATCH]   unmatch UnaryExp\n");
+            fail("UnaryExp","UnaryExp");
             rollback(bck);
             return 0;
         }
         return 1;
     }
     if(tok == Y_SUB){
-        printf("[INFO]      advance Y_SUB\n");
+        pullin("UnaryExp:Y_SUB");
         advance();
         bck = pot;
         if(analyse_UnaryExp()){
-            printf("[INFO]      advance UnaryExp\n");
+            path("UnaryExp","UnaryExp");
         }else{
-            printf("[UNMATCH]   unmatch UnaryExp\n");
+            fail("UnaryExp","UnaryExp");
             rollback(bck);
             return 0;
         }
         return 1;
     }
     if(tok == Y_NOT){
-        printf("[INFO]      advance Y_NOT\n");
+        pullin("UnaryExp:Y_NOT");
         advance();
         bck = pot;
         if(analyse_UnaryExp()){
-            printf("[INFO]      advance UnaryExp\n");
+            path("UnaryExp","UnaryExp");
         }else{
-            printf("[UNMATCH]   unmatch UnaryExp\n");
+            fail("UnaryExp","UnaryExp");
             rollback(bck);
             return 0;
         }
@@ -1382,35 +1395,35 @@ int analyse_EqExp(){
     list *bck ;
     bck =pot;
     if(analyse_RelExp()){
-        printf("[INFO]      advance RelExp\n");
+        path("EqExp","RelExp");
     }else{
-        printf("[UNMATCH]   unmatch RelExp\n");
+        fail("EqExp","RelExp");
         rollback(bck);
         return 0;
     }
     advance();
     bck = pot;
     if(tok==Y_EQ){
-        printf("[INFO]      advance EQ\n");
+        pullin("EqExp:Y_EQ");
         advance();
         bck = pot;
         if(analyse_EqExp()){
-            printf("[INFO]      advance EqExp\n");
+            path("EqExp","EqExp");
         }else{
-            printf("[UNMATCH]   unmatch EqExp\n");
+            fail("EqExp","EqExp");
             rollback(bck);
             return 0;
         }
         return 1;
     }
     if(tok == Y_NOTEQ){
-        printf("[INFO]      advance NOTEQ\n");
+        pullin("EqExp:Y_NOTEQ");
         advance();
         bck = pot;
         if(analyse_EqExp()){
-            printf("[INFO]      advance EqExp\n");
+            path("EqExp","EqExp");
         }else{
-            printf("[UNMATCH]   unmatch EqExp\n");
+            fail("EqExp","EqExp");
             rollback(bck);
             return 0;
         }
@@ -1422,42 +1435,42 @@ int analyse_PrimaryExp(){
     list *bck ;
     bck = pot;
     if(tok == Y_LPAR){
-        printf("[INFO]      advance LPAR\n");
+        pullin("PrimaryExp:Y_LPAR");
         advance();
         bck =pot;
         if(analyse_Exp()){
-            printf("[INFO]      advance Exp\n");
+            path("PrimaryExp","Exp");
         }else{
-            printf("[UNMATCH]   unmatch Exp\n");
+            fail("PrimaryExp","Exp");
             rollback(bck);
             return 0;
         }
         advance();
         bck = pot;
         if(tok != Y_RPAR){
-            printf("[UNMATCH]   unmatch RPAR\n");
+            unmatch("PrimaryExp:Y_RPAR");
             return 0;
         }
-        printf("[INFO]      advance RPAR\n");
+        pullin("ParmaryExp:Y_RPAR");
         return 1;
     }
     if(tok == num_INT){
-        printf("[INFO]      advance num_INT\n");
+        pullin("ParmaryExp:num_INT");
         return 1;
     }else{
-        printf("[UNMATCH]   unmatch num_INT\n");
+        unmatch("ParmaryExp:num_INT");
     }
     if(tok == num_FLOAT){
-        printf("[INFO]      advance num_FLOAT\n");
+        pullin("ParmaryExp:num_FLOAT");
         return 1;
     }else{
-        printf("[UNMATCH]   unmatch num_FLOAT\n");
+        unmatch("ParmaryExp:num_FLOAT");
     }
     if(analyse_LVal()){
-        printf("[INFO]      advance LVAL\n");
+        path("ParamaryExp","LVal");
         return 1;
     }else{
-        printf("[UNMATCH]   unmatch LVAL\n");
+        fail("ParamaryExp","LVal");
         rollback(bck);
     }
     return 0;
@@ -1466,28 +1479,28 @@ int analyse_CallParams(){
     list *bck;
     bck = pot;
     if(analyse_Exp()){
-        printf("[INFO]      advance EXP\n");
+        path("CallParams","Exp");
     }else{
-        printf("[UNMATCH]   unmatch Exp\n");
+        fail("CallParams","Exp");
         rollback(bck);
         return 0;
     }
     advance();
     bck = pot;
     if(tok == Y_COMMA){
-        printf("[INFO]  advance COMMA\n");
+        pullin("CallParams:Y_COMMA");
         advance();
         bck = pot;
         if(analyse_CallParams()){
-            printf("[INFO]      advance CallParams\n");
+            path("CallParams","CallParams");
             return 1;
         }else{
-            printf("[UNMATCH]   unmatch CallParams\n");
+            fail("CallParams","CallParams");
             rollback(bck);
             return 0;
         }
     }else{
-        printf("[UNMATCH]   unmatch COMMA\n");
+        unmatch("CallParams:Y_COMMA");
         rollback(bck->lst);
     }
     return 1;
@@ -1496,28 +1509,28 @@ int analyse_RelExp(){
     list *bck ;
     bck = pot;
     if(analyse_AddExp()){
-        printf("[INFO]      advance AddExp\n");
+        path("RelExp","AddExp");
     }else{
-        printf("[UNMATCH]   unmatch AddExp\n");
+        fail("RelExp","AddExp");
         rollback(bck);
         return 0;
     }
     advance();
     bck = pot;
     if(tok==Y_LESS||tok == Y_GREAT || tok == Y_LESSEQ || tok == Y_GREATEQ){
-        printf("[INFO]      advance GREAT|LESS|LESSEQ|GREATEQ\n");
+        pullin("Y_LESS|Y_GREAT|Y_LESSEQ|Y_GREATEQ");
         advance();
         bck = pot;
         if(analyse_RelExp()){
-            printf("[INFO]      advance RelExp\n");
+            path("RelExp","RelExp");
             return 1;
         }else{
-            printf("[UNMATCH]   unmatch RelExp\n");
+            fail("RelExp","RelExp");
             rollback(bck);
             return 0;
         }
     }else{
-        printf("[UNMATCH]   LESS|GREAT|LESSEQ|GREATEQ\n");
+        unmatch("Y_LESS|Y_GREAT|Y_LESSEQ|Y_GREATEQ");
         rollback(bck->lst);
     }
     return 1;
