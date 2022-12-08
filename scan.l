@@ -67,6 +67,9 @@ WHITE_SPACE	[ \t\n\r]+
 "float"		{return Y_FLOAT;}
 "double"	{return Y_FLOAT;}
 
+\/\/.*[\n]		{ /* ignore note */ }
+"/*"(([^\*]*(\*[^\/])?)*)"*/"		{ /* ignore note */ }
+
 [0-9]+  {return num_INT;}
 [0-9]+\.[0-9]+ {return num_FLOAT;}
 
