@@ -849,30 +849,32 @@ int analyse_ArraySubscripts(){
     list *bck;
     bck = pot;
     if(tok != Y_LSQUARE){
-        printf("[UNMATCH]   unmatch Lsquare\n");
+        unmatch("ArraySubscripts:Y_LSQUARE");
         return 0;
     }
-    printf("[INFO]      advance Lsquare\n");
+    pullin("ArraySubscripts:Y_Lsquare");
     advance();
     bck = pot;
     if(analyse_Exp()){
-        printf("[INFO]      advance Exp\n");
+        path("ArraySubscripts","Exp");
     }else{
-        printf("[UNMATCH]   unmatch Exp\n");
+        fail("ArraySubscripts","Exp");
         rollback(bck->lst);
         return 0;
     }
     advance();
     bck = pot;
     if(tok != Y_RSQUARE){
-        printf("[UNMATCH]   unmatch Rsquare\n");
+        unmatch("ArraySubscripts:Y_RSQUARE");
         return 0;
-    }else
-    printf("[INFO]advance Rsquare\n");
+    }
+    pullin("ArraySubscripts:Y_RSQUARE");
+    advance();
+    bck = pot;
     if(analyse_ArraySubscripts()){
-        printf("[INFO]      advance ArraySubscripts\n");
+        path("ArraySubscripts","ArraySubscripts");
     }else{
-        printf("[UNMATCH]   unmatch ArraySubscripts\n");
+        fail("ArraySubscripts","ArraySubscripts");
         rollback(bck->lst);
     }
     return 1;
@@ -881,10 +883,10 @@ int analyse_ConstExp(){
     list *bck;
     bck = pot;
     if(analyse_AddExp()){
-        printf("[INFO]      advance AddExp\n");
+        path("ConstExp","AddExp");
         return 1;
     }else{
-        printf("[UNMATCH]   unmatch AddExp\n");
+        fail("ConstExp","AddExp");
         rollback(bck);
         return 0;
     }
@@ -893,25 +895,25 @@ int analyse_ConstInitVals(){
     list *bck;
     bck = pot;
     if(tok != Y_COMMA){
-        printf("[UNMATCH]   unmatch Comma\n");
+        unmatch("ConstInitVals:Y_COMMA");
         return 0;
     }
-    printf("[INFO]      advance Comma\n");
+    pullin("ConstInitVals:Y_COMMA");
     advance();
     bck = pot;
     if(analyse_ConstInitVal()){
-        printf("[INFO]      advance ConstInitVal\n");
+        path("ConstInitVals","ConstInitVal");
     }else{
-        printf("[UNMATCH]   unmatch ConstInitVal\n");
+        fail("ConstInitVals","ConstInitVal");
         rollback(bck);
         return 0;
     }
     advance();
     bck = pot;
     if(analyse_ConstInitVals()){
-        printf("[INFO]      advance ConstInitVals\n");
+        path("ConstInitVals","ConstInitVals");
     }else{
-        printf("[UNMATCH]   unmatch ConstInitVals\n");
+        fail("ConstInitVals","ConstInitVals");
         rollback(bck->lst);
     }
     return 1;
@@ -1147,32 +1149,50 @@ int analyse_AddExp(){
     bck = pot;
     if(analyse_MulExp()){
         path("AddExp","MulExp");
-        return 1;
     }else{
         fail("AddExp","MulExp");
         rollback(bck);
         return 0;
     }
-    if(tok  == Y_ADD){
-        pullin("AddExp:Y_ADD");
-    }
-    else if(tok  == Y_SUB){
-        pullin("AddExp:Y_SUB");
+    advance();
+    bck = pot;
+    if(analyse_AddExpDot()){
+        path("AddExp","AddExpDot");
     }else{
-        unmatch("AddExp:Y_SUB|Y_ADD");
+        fail("AddExp","AddExpDot");
         rollback(bck->lst);
-        return 1;
+    }
+    return 1;
+}
+int analyse_AddExpDot(){
+    list *bck;
+    bck = pot;
+    if(tok == Y_ADD){
+        pullin("AddExpDot:Y_ADD");
+    }else if(tok == Y_SUB){
+        pullin("AddExpDot:Y_SUB");
+    }else{
+        rollback(bck);
+        return 0;
     }
     advance();
     bck = pot;
     if(analyse_MulExp()){
-        path("AddExp","MulExp");
-        return 1;
+        path("AddExpDot","MulExp");
     }else{
-        fail("AddExp","MulExp");
+        fail("AddExpDot","MulExp");
         rollback(bck);
         return 0;
     }
+    advance();
+    bck = pot;
+    if(analyse_AddExpDot()){
+        path("AddExpDot","AddExpDot");
+    }else{
+        fail("AddExpDot","AddExpDot");
+        rollback(bck->lst);
+    }
+    return 1;
 }
 int analyse_LVal(){
     list *bck ;
