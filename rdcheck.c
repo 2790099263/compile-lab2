@@ -198,6 +198,7 @@ int analyse_MulExp();
 int analyse_RelExp();
 int analyse_EqExp();
 int analyse_LAndExp();
+int analyse_ConstDefsDot();
 #endif
 /*function decl part end*/
 
@@ -320,19 +321,14 @@ int analyse_ConstDecl() {
     }
     advance();
     bck = pot;
-    if(analyse_ConstDef()){
+    if(analyse_ConstDefs()){
+        path("ConstDecl","ConstDefs");
+    }else if(analyse_ConstDef()){
         path("ConstDecl","ConstDef");
-    }else {
-        fail("ConstDecl","ConstDef");
+    }else{
+        fail("ConstDecl","ConstDefs|ConstDef");
         rollback(bck);
-        if(analyse_ConstDefs()){
-            path("ConstDecl","ConstDefs");
-        }
-        else {
-            fail("ConstDecl","ConstDefs");
-            rollback(bck);
-            return 0;
-        }
+        return 0;
     }
     advance();
     bck = pot;
@@ -521,6 +517,7 @@ int analyse_ConstDefs(){
             path("ConstDefs","ConstDef");
         }else{
             fail("ConstDefs","ConstDef");
+            rollback(bck);
             return 0;
         }
     }else{
@@ -530,29 +527,38 @@ int analyse_ConstDefs(){
     }
     advance();
     bck = pot;
-    if(tok!=Y_COMMA){
-        unmatch("ConstDefs:Y_COMMA");
-        rollback(bck->lst);
-        return 1;
-    }
-    pullin("ConstDefs:Y_COMMA");
-    advance();
-    bck =pot;
-    if(analyse_ConstDef()){
-        path("ConstDefs","ConstDef");
+    if(analyse_ConstDefsDot()){
+        path("ConstDefs","ConstDefsDot");
     }else{
-        fail("ConstDefs","ConstDef");
+        fail("ConstDefs","ConstDefsDot");
+        rollback(bck->lst);
+    }
+    return 1;
+}
+int analyse_ConstDefsDot(){
+    list *bck ;
+    bck = pot;
+    if(tok != Y_COMMA){
+        unmatch("ConstDefsDot:Y_COMMA");
+        return 0;
+    }
+    pullin("ConstDefsDot:Y_COMMA");
+    advance();
+    bck = pot;
+    if(analyse_ConstDef()){
+        path("ConstDefsDot","ConstDef");
+    }else{
+        fail("ConstDefsDot","ConstDef");
         rollback(bck);
         return 0;
     }
     advance();
     bck = pot;
-    if(analyse_ConstDefs()){
-        path("ConstDefs","ConstDef");
+    if(analyse_ConstDefsDot()){
+        path("ConstDefsDot","ConstDefsDot");
     }else{
-        fail("ConstDefs","ConstDef");
-        rollback(bck);
-        return 0;
+        fail("ConstDefsDot","ConstDefsDot");
+        rollback(bck->lst);
     }
     return 1;
 }
