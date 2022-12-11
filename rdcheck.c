@@ -14,7 +14,7 @@
 // #define DEBUG_OUT
 // #define DEBUG
 #define WHILE
-#define DEBUG_LOG
+// #define DEBUG_LOG
 
 /*Linked List part begin*/
 typedef struct list_node
@@ -108,11 +108,15 @@ void advance(){
     if(pot->nxt != NULL) {
         pot=pot->nxt;
         strcpy(s_now,pot->s);
+        #ifdef DEBUG_LOG
         printf("[+]         advance: %d %s\n",pot->val,s_now);
+        #endif
         tok=pot->val;
         return ;
     }
+    #ifdef DEBUG_LOG
     printf("[WARNING]   No advance!\n");
+    #endif
     tok=-114514;
     return ;
 }
@@ -323,12 +327,16 @@ int analyse_ConstDecl() {
     bck = pot;
     if(analyse_ConstDefs()){
         path("ConstDecl","ConstDefs");
-    }else if(analyse_ConstDef()){
-        path("ConstDecl","ConstDef");
     }else{
-        fail("ConstDecl","ConstDefs|ConstDef");
+        fail("ConstDecl","ConstDefs");
         rollback(bck);
-        return 0;
+        if(analyse_ConstDef()){
+            path("ConstDecl","ConstDef");
+        }else{
+            fail("ConstDecl","ConstDefs|ConstDef");
+            rollback(bck);
+            return 0;
+        }
     }
     advance();
     bck = pot;
@@ -469,20 +477,20 @@ int analyse_ConstDef(){
     list *bck;
     bck = pot;
     if(tok != Y_ID){
-        unmatch("Const:Y_ID");
+        unmatch("ConstDef:Y_ID");
         return 0;
     }
-    pullin("Const:Y_ID");
+    pullin("ConstDef:Y_ID");
     advance();
     bck = pot;
     if(analyse_ConstExps()){
         path("ConstDef","ConstExps");
+        advance();
+        bck = pot;
     }else{
         fail("ConstDef","ConstExps");
-        rollback(bck->lst);
+        rollback(bck);
     }
-    advance();
-    bck = pot;
     if(tok!=Y_ASSIGN){
         unmatch("ConstDef:Y_ASSIGN");
         return 0;
