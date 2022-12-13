@@ -203,6 +203,7 @@ int analyse_RelExp();
 int analyse_EqExp();
 int analyse_LAndExp();
 int analyse_ConstDefsDot();
+int analyse_MulExpDot();
 #endif
 /*function decl part end*/
 
@@ -1261,7 +1262,6 @@ int analyse_MulExp(){
     bck = pot;
     if(analyse_UnaryExp()){
         path("MulExp","UnaryExp");
-        return 1;
     }else{
         fail("MuilExp","UnaryExp");
         rollback(bck);
@@ -1269,52 +1269,39 @@ int analyse_MulExp(){
     }
     advance();
     bck = pot;
-    if(tok == Y_MUL){
-        pullin("MulExp:Y_MUL");
-        advance();
-        bck = pot;
-        if(analyse_UnaryExp()){
-            path("MulExp","UnaryExp");
-        }else{
-            fail("MulExp","UnaryExp");
-            rollback(bck);
-            return 1;
-        }
-    }else if(tok == Y_DIV){
-        pullin("MulExp:Y_DIV");
-        advance();
-        bck = pot;
-        if(analyse_UnaryExp()){
-            path("MulExp","UnaryExp");
-        }else{
-            fail("MulExp","UnaryExp");
-            rollback(bck);
-            return 1;
-        }
-    }else if(tok == Y_MODULO){
-        pullin("MulExp:Y_MOUDLO");
-        advance();
-        bck = pot;
-        if(analyse_UnaryExp()){
-            path("MulExp","UnaryExp");
-        }else{
-            path("MulExp","UnaryExp");
-            rollback(bck);
-            return 1;
-        }
+    if(analyse_MulExpDot()){
+        path("MulExp","MulExpDot");
     }else{
-        unmatch("MulExp:MUL|DIV|MODULO");
+        fail("MulExp","MulExpDot");
         rollback(bck->lst);
-        return 1;
+    }
+    return 1;
+}
+int analyse_MulExpDot(){
+    list *bck;
+    bck = pot;
+    if(tok == Y_MUL||tok == Y_DIV || tok == Y_MODULO){
+        pullin("MulExpDot:Y_ML||Y_DIV||Y_MODLO");
+    }else{
+        unmatch("MulExpDot:Y_ML||Y_DIV||Y_MODLO");
+        return 0;
     }
     advance();
     bck = pot;
-    if(analyse_MulExp()){
-        path("MulExp","MulExp");
+    if(analyse_UnaryExp()){
+        path("MulExpDot","UnaryExp");
     }else{
-        fail("MulExp","MulExp");
+        fail("MulExpDot","UnaryExp");
         rollback(bck);
         return 0;
+    }
+    advance();
+    bck = pot;
+    if(analyse_MulExpDot()){
+        path("MulExpDot","MulExpDot");
+    }else{
+        fail("MulExpDot","MulExpDot");
+        rollback(bck->lst);
     }
     return 1;
 }
