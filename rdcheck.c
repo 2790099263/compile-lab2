@@ -1317,8 +1317,8 @@ int analyse_LAndExp(){
     }
     advance();
     bck =pot;
-    if(tok == Y_ADD){
-        pullin("LAndExp:Y_ADD");
+    if(tok == Y_AND){
+        pullin("LAndExp:Y_AND");
         advance();
         bck =pot;
         if(analyse_LAndExp()){
@@ -1330,7 +1330,7 @@ int analyse_LAndExp(){
         }
         
     }else{
-        unmatch("LAndExp:Y_ADD");
+        unmatch("LAndExp:Y_AND");
         rollback(bck->lst);
     }
     return 1;
@@ -1437,7 +1437,7 @@ int analyse_EqExp(){
         }
         return 1;
     }
-    if(tok == Y_NOTEQ){
+    else if(tok == Y_NOTEQ){
         pullin("EqExp:Y_NOTEQ");
         advance();
         bck = pot;
@@ -1449,6 +1449,10 @@ int analyse_EqExp(){
             return 0;
         }
         return 1;
+    }
+    else {
+        unmatch("EqExp:Y_EQ||Y_NOTEQ");
+        rollback(bck->lst);
     }
     return 1;
 }

@@ -70,6 +70,7 @@ WHITE_SPACE	[ \t\n\r]+
 \/\/.*[\n]		{ /* ignore note */ }
 "/*"(([^\*]*(\*[^\/])?)*)"*/"		{ /* ignore note */ }
 
+0[xX][0-9a-fA-F]+  {return num_INT;}
 [0-9]+  {return num_INT;}
 [0-9]+\.[0-9]+ {return num_FLOAT;}
 
