@@ -14,7 +14,7 @@
 // #define DEBUG_OUT
 // #define DEBUG
 #define WHILE
-// #define DEBUG_LOG
+#define DEBUG_LOG
 
 /*Linked List part begin*/
 typedef struct list_node
@@ -204,6 +204,7 @@ int analyse_EqExp();
 int analyse_LAndExp();
 int analyse_ConstDefsDot();
 int analyse_MulExpDot();
+int analyse_FuncParamsDot();
 #endif
 /*function decl part end*/
 
@@ -448,29 +449,39 @@ int analyse_FuncParams(){
     }
     advance();
     bck = pot;
-    if(tok!=Y_COMMA){
-        rollback(bck->lst);
-        unmatch("FuncParams:Y_COMMA");
-        return 1;
+    if(analyse_FuncParamsDot()){
+        path("FuncParams","FuncParamsDot");
     }else{
-        advance();
-        bck = pot;
-        if(analyse_FuncParam()){
-            path("FuncParams","FuncParam");
-        }else{
-            fail("FuncParams","FuncParam");
-            rollback(bck);
-            return 0;
-        }
-        advance();
-        bck = pot;
-        if(analyse_FuncParams()){
-            path("FuncParams","FuncParams");
-        }else{
-            fail("FuncParams","FuncParams");
-            rollback(bck);
-            return 0;
-        }
+        fail("FuncParams","FuncParamsDot");
+        rollback(bck->lst);
+    }
+    return 1;
+}
+int analyse_FuncParamsDot(){
+    list *bck ;
+    bck = pot;
+    if(tok == Y_COMMA){
+        pullin("FuncParamsDot:Y_COMMA");
+    }else{
+        unmatch("FuncParamsDot:Y_COMMA");
+        return 0;
+    }
+    advance();
+    bck = pot;
+    if(analyse_FuncParam()){
+        path("FuncParamsDot","FuncParam");
+    }else{
+        fail("FuncParamsDot","FuncParam");
+        rollback(bck);
+        return 0;
+    }
+    advance();
+    bck = pot;
+    if(analyse_FuncParamsDot()){
+        path("FuncParamsDot","FuncParamsDot");
+    }else{
+        fail("FuncParamsDot","FuncParamsDot");
+        rollback(bck->lst);
     }
     return 1;
 }
@@ -701,6 +712,7 @@ int analyse_FuncParam(){
     bck = pot;
     if(tok!=Y_LSQUARE){
         unmatch("FuncParam:Y_LSQUARE");
+        rollback(bck->lst);
         return 1;
     }
     pullin("FuncParam:Y_LSQUARE");
