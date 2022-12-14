@@ -47,7 +47,7 @@ void listPush(list *now,int v,char *ss){
         error("no memory");
         exit(0);
     }
-    strcpy(nx->s,ss);
+    // strcpy(nx->s,ss);
     nx->val=v;
     nx->lst=po;
     po->nxt=nx;
@@ -107,9 +107,9 @@ int tok;
 void advance(){
     if(pot->nxt != NULL) {
         pot=pot->nxt;
-        strcpy(s_now,pot->s);
+        // strcpy(s_now,pot->s);
         #ifdef DEBUG_LOG
-        printf("[+]         advance: %d %s\n",pot->val,s_now);
+        printf("[+]         advance: %d %s\n",pot->val,yytext);
         #endif
         tok=pot->val;
         return ;
@@ -430,13 +430,6 @@ int analyse_Block() {
     pullin("Block:Y_RBRACKET");
     return 1;
 }
-/*
-FuncParams: FuncParam
-           | FuncParams Y_COMMA FuncParam
-        ====
-FuncParams: FuncParam FuncParams'
-FuncParams':Y_COMMA FuncParam FuncParams|e
-*/
 int analyse_FuncParams(){
     list *bck;
     bck = pot;

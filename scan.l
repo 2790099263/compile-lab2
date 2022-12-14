@@ -72,6 +72,10 @@ WHITE_SPACE	[ \t\n\r]+
 
 0[xX][0-9a-fA-F]+  {return num_INT;}
 [0-9]+  {return num_INT;}
+\.[0-9]+\E\+[0-9]+ {return num_FLOAT;}
+[0-9]+\e[-0-9]+	{return num_FLOAT;}
+0[xX]\.[0-9a-fA-F]+	{return num_FLOAT;}
+0[xX][0-9a-fA-F]+\.[0-9a-fA-F]+	{return num_FLOAT;}
 [0-9]+\.[0-9]+ {return num_FLOAT;}
 
 [a-zA-Z_][a-zA-Z0-9_]*	{return Y_ID;}
