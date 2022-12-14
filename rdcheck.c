@@ -985,17 +985,18 @@ int analyse_InitVals(){
     return 1;
 }
 int analyse_Stmt(){
-    list *bck ;
+    list *bck,*bck2;
     bck = pot ;
+    bck2= pot;
     if(analyse_LVal()){
         path("Stmt","LVal");
         advance();
         bck = pot;
         if(tok != Y_ASSIGN){
             unmatch("Stmt:Y_ASSIGN");
-            return 0;
+            rollback(bck2->lst);
         }
-        pullin("Stmt:Y_ASSIGN");
+        else pullin("Stmt:Y_ASSIGN");
         advance();
         bck = pot;
         if(analyse_Exp()){
@@ -1348,16 +1349,10 @@ int analyse_LAndExp(){
     return 1;
 }
 int analyse_UnaryExp(){
-    list *bck ;
+    list *bck,*nxt;
     bck = pot;
-    if(analyse_PrimaryExp()){
-        path("UnaryExp","PrimaryExp");
-        return 1;
-    }else{
-        fail("UnaryExp","PrimaryExp");
-        rollback(bck);
-    }
-    if(tok == Y_ID){
+    nxt = bck->nxt;
+    if(tok == Y_ID&&(nxt->val==Y_LPAR)){
         pullin("UnaryExp:Y_ID");
         advance();
         bck = pot;
@@ -1383,7 +1378,7 @@ int analyse_UnaryExp(){
         pullin("UnaryExp:Y_RPAR");
         return 1;
     }
-    if(tok == Y_ADD){
+    else if(tok == Y_ADD){
         pullin("UnaryExp:Y_ADD");
         advance();
         bck = pot;
@@ -1396,7 +1391,7 @@ int analyse_UnaryExp(){
         }
         return 1;
     }
-    if(tok == Y_SUB){
+    else if(tok == Y_SUB){
         pullin("UnaryExp:Y_SUB");
         advance();
         bck = pot;
@@ -1409,7 +1404,7 @@ int analyse_UnaryExp(){
         }
         return 1;
     }
-    if(tok == Y_NOT){
+    else if(tok == Y_NOT){
         pullin("UnaryExp:Y_NOT");
         advance();
         bck = pot;
@@ -1421,6 +1416,14 @@ int analyse_UnaryExp(){
             return 0;
         }
         return 1;
+    }else{
+        if(analyse_PrimaryExp()){
+            path("UnaryExp","PrimaryExp");
+            return 1;
+        }else{
+            fail("UnaryExp","PrimaryExp");
+            rollback(bck);
+        }
     }
     return 0;
 }
