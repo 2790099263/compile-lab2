@@ -9,12 +9,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "node_type.h"
 
 #define DECL_PART
-#define DEBUG_OUT
+// #define DEBUG_OUT
 // #define DEBUG
 #define WHILE
-#define DEBUG_LOG
+// #define DEBUG_LOG
 
 /*Linked List part begin*/
 typedef struct list_node
@@ -47,7 +48,7 @@ void listPush(list *now,int v,char *ss){
         error("no memory");
         exit(0);
     }
-    // strcpy(nx->s,ss);
+    strcpy(nx->s,ss);
     nx->val=v;
     nx->lst=po;
     po->nxt=nx;
@@ -162,6 +163,20 @@ void pullin(char str[]){
     #endif
 }
 
+typedef struct _ast ast;
+typedef struct _ast *past;
+struct _ast{
+	int ivalue;
+	float fvalue;
+	char* svalue;
+	node_type nodeType;
+	past left;
+	past right;
+	past if_cond;
+	past next;
+};
+
+
 /*function decl part begin*/
 #ifdef DECL_PART
 /*
@@ -205,84 +220,133 @@ int analyse_LAndExp();
 int analyse_ConstDefsDot();
 int analyse_MulExpDot();
 int analyse_FuncParamsDot();
+past newAstNode(node_type nodetype,past left,past right);
 #endif
 /*function decl part end*/
 
 /*functions program begin*/
-int analyse_CompUnit(){
+int judge(past x){
+    if(x!=NULL)return 1;
+    else return 0;
+}
+past newAstNode(node_type nodetype,past left,past right){
+    past node = malloc(sizeof(ast));
+    if(node == NULL){
+        printf("Run out of Memory!\n");
+        exit(0);
+    }
+    memset(node,0,sizeof(ast));
+    node->nodeType  =   nodetype;
+    node->left      =   left    ;
+    node->right     =   right   ;
+    return node;
+}
+void Free(past x){
+    if(x==NULL)return ;
+    Free(x->left);
+    Free(x->right);
+    Free(x->next);
+    free(x);
+    return ;
+}
+past analyse_CompUnit(){
     list *bck;
     bck=pot;
-    if(analyse_Decl()) {
+    past CompUnit_node = newAstNode(TRANSLATION_UNIT,NULL,NULL);
+    CompUnit_node->left = analyse_Decl();
+    if(judge(CompUnit_node->left)) {
         advance();
-        analyse_CompUnit();
+        CompUnit_node->next = analyse_CompUnit();
+        if(judge(CompUnit_node->next)){
+            path("CompUnit","CompUnit");
+        }
+        else{
+            fail("CompUnit","CompUnit");
+        }
         path("CompUnit","Decl");
-        return 1;
+        return CompUnit_node;
     }
     else {
         fail("CompUnit","Decl");
         rollback(bck);
     }
-    if(analyse_FuncDef()) {
+    CompUnit_node->left = analyse_FuncDef();
+    if(judge(CompUnit_node->left)) {
         advance();
-        analyse_CompUnit();
+        CompUnit_node->next = analyse_CompUnit();
+        if(judege(CompUnit_node->next)){
+            path("CompUnit","CompUnit");
+        }else{
+            fail("CompUnit","CompUnit");
+        }
         path("CompUnit","FuncDef");
-        return 1;
+        return CompUnit_node;
     }
     else {
         fail("CompUnit","FuncDef");
         rollback(bck);
     }
-    return 0;
+    return NULL;
 }
-int analyse_Decl() {
+past analyse_Decl() {
     list *bck;
     bck = pot;
-    if(analyse_ConstDecl()){
+    past Decl_node = NULL;
+    Decl_node = analyse_ConstDecl();
+    if(judge(Decl_node)){
         path("Decl","ConstDecl");
-        return 1;
+        return Decl_node;
     }
     else {
         fail("Decl","ConstDecl");
         rollback(bck);
     }
-    if(analyse_VarDecl()){
+    Decl_node = analyse_VarDecl();
+    if(judge(Decl_node)){
         path("Decl","VarDecl");
-        return 1;
+        return Decl_node;
     }
     else {
         fail("Decl","VarDecl");
         rollback(bck);
     }
-    return 0;
+    return NULL;
 }
-int analyse_FuncDef() {
+past analyse_FuncDef() {
     list *bck;
     bck = pot;
-    if(analyse_Type()){
+    past FuncDef_node = newAstNode(FUNCTION_DECL,NULL,NULL);
+    FuncDef_node = analyse_Type();
+    if(judge(FuncDef_node)){
         path("FuncDef","Type");
     }
     else {
         fail("FuncDef","Type");
         rollback(bck);
-        return 0;
+        Free(FuncDef_node);
+        return NULL;
     }
     advance();
     bck = pot;
     if(tok != Y_ID) {
         unmatch("FuncDef:Y_ID");
-        return 0;
+        Free(FuncDef_node);
+        return NULL;
     }
     pullin("FuncDef:Y_ID");
+    FuncDef_node->svalue = pot->s;
     advance();
     bck = pot;
     if(tok!=Y_LPAR) {
         unmatch("FuncDef:Y_LPAR");
-        return 0;
+        Free(FuncDef_node);
+        return NULL;
     }
     pullin("FuncDef:Y_LPAR");
     advance();
     bck = pot;
-    if(analyse_FuncParams()) {
+    FuncDef_node->left = analyse_FuncParams();
+    if(judge(FuncDef_node->left)) {
         path("FuncDef","FuncParams");
     }
     else {
@@ -293,24 +357,28 @@ int analyse_FuncDef() {
     bck = pot;
     if(tok != Y_RPAR) {
         unmatch("FuncDef:Y_RPAR");
-        return 0;
+        Free(FuncDef_node);
+        return NULL;
     }
     pullin("FuncDef:Y_RPAR");
     advance();
     bck = pot;
-    if(analyse_Block()) {
+    FuncDef_node->right = analyse_Block();
+    if(judge(FuncDef_node)) {
         path("FuncDef","Y_RPAR");
-        return 1;
+        return FuncDef_node;
     }
     else {
         rollback(bck);
         fail("FuncDef","Y_RPAR");
-        return 0;
+        Free(FuncDef_node);
+        return NULL;
     }
 }
-int analyse_ConstDecl() {
+past analyse_ConstDecl() {
     list *bck;
     bck = pot;
+    past ConstDecl_node =newAstNode(DECL_STMT,NULL,NULL);
     if(tok != Y_CONST){
         unmatch("ConstDecl:Y_CONST");
         return 0;
@@ -318,60 +386,70 @@ int analyse_ConstDecl() {
     pullin("ConstDecl:Y_CONST");
     advance();
     bck = pot;
-    if(analyse_Type()) {
+    if(analyse_Type()!=NULL) {
         path("ConstDecl","Type");
     }else{
         fail("ConstDecl","Type");
         rollback(bck);
-        return 0;
+        Free(ConstDecl_node);
+        return NULL;
     }
     advance();
     bck = pot;
-    if(analyse_ConstDefs()){
+    ConstDecl_node->left = analyse_ConstDefs();
+    if(judge(ConstDecl_node->left)){
         path("ConstDecl","ConstDefs");
     }else{
         fail("ConstDecl","ConstDefs");
         rollback(bck);
-        if(analyse_ConstDef()){
-            path("ConstDecl","ConstDef");
-        }else{
-            fail("ConstDecl","ConstDefs|ConstDef");
-            rollback(bck);
-            return 0;
-        }
+        Free(ConstDecl_node);
+        return NULL;
+        // if(analyse_ConstDef()){
+        //     path("ConstDecl","ConstDef");
+        // }else{
+        //     fail("ConstDecl","ConstDefs|ConstDef");
+        //     rollback(bck);
+        //     return 0;
+        // }
     }
     advance();
     bck = pot;
     if(tok!=Y_SEMICOLON){
         unmatch("ConstDecl:Y_SEMICOLON");
-        return 0;
+        Free(ConstDecl_node);
+        return NULL;
     }else{
         pullin("ConstDecl:Y_SEMICOLON");
-        return 1;
+        return ConstDecl_node;
     }
 }
-int analyse_VarDecl() {
+past analyse_VarDecl() {
     list *bck;
     bck = pot;
-    if(analyse_Type()){
+    past VarDecl_node = newAstNode(DECL_STMT,NULL,NULL);
+    if(analyse_Type()!=NULL){
         path("VarDecl","Type");
     }else{
         fail("VarDecl","Type");
         rollback(bck);
-        return 0;
+        Free(VarDecl_node);
+        return NULL;
     }
     advance();
     bck = pot;
-    if(analyse_VarDef()) {
+    VarDecl_node->left = analyse_VarDef();
+    if(judge(VarDecl_node->left)) {
         path("VarDecl","VarDef");
     }else{
         fail("VarDecl","VarDef");
         rollback(bck);
-        return 0;
+        Free(VarDecl_node);
+        return NULL;
     }
     advance();
     bck = pot;
-    if(analyse_VarDecls()) {
+    VarDecl_node->next = analyse_VarDecls();
+    if(judge(VarDecl_node->next)) {
         path("VarDecl","VarDecls");
     }else{
         fail("VarDecl","VarDecls");
@@ -381,12 +459,14 @@ int analyse_VarDecl() {
     bck = pot;
     if(tok!=Y_SEMICOLON){
         unmatch("VarDecl:Y_SEMICILON");
-        return 0;
+        Free(VarDecl_node);
+        return NULL;
     }
     pullin("VarDecl:Y_SEMICILON");
-    return 1;
+    return VarDecl_node;
 }
-int analyse_Type() {
+past analyse_Type() {
+    past Type_node = newAstNode(0,NULL,NULL);
     switch (tok)
     {
     case Y_INT:
@@ -400,22 +480,25 @@ int analyse_Type() {
         break;
     default:
         unmatch("Type: INT|FLOAT|VOID");
-        return 0;
+        return NULL;
         break;
     }
-    return 1;
+    return Type_node;
 }
-int analyse_Block() {
+past analyse_Block() {
     list *bck;
     bck = pot;
+    past Block_node = newAstNode(COMPOUND_STMT,NULL,NULL);
     if(tok!=Y_LBRACKET){
         unmatch("Block:Y_LBRACKET");
-        return 0;
+        Free(Block_node);
+        return NULL;
     }
     pullin("Block:Y_LBRACKET");
     advance();
     bck = pot;
-    if(analyse_BlockItems()){
+    Block_node->left = analyse_BlockItems();
+    if(judge(Block_node)){
         path("Block","BlockItems");
     }else{
         rollback(bck->lst);
@@ -425,52 +508,59 @@ int analyse_Block() {
     bck = pot;
     if(tok!=Y_RBRACKET){
         unmatch("Block:Y_RBRACKET");
-        return 0;
+        Free(Block_node);
+        return NULL;
     }
     pullin("Block:Y_RBRACKET");
-    return 1;
+    return Block_node;
 }
-int analyse_FuncParams(){
+past analyse_FuncParams(){
     list *bck;
     bck = pot;
-    if(analyse_FuncParam()){
+    past FuncParams_node = analyse_FuncParam();
+    if(judge(FuncParams_node)){
         path("FuncParams","FuncParam");
     }else{
         fail("FuncParams","FuncParam");
         rollback(bck);
-        return 0;
+        Free(FuncParams_node);
+        return NULL;
     }
     advance();
     bck = pot;
-    if(analyse_FuncParamsDot()){
+    FuncParams_node->next = analyse_FuncParamsDot();
+    if(judge(FuncParams_node->next)){
         path("FuncParams","FuncParamsDot");
     }else{
         fail("FuncParams","FuncParamsDot");
         rollback(bck->lst);
     }
-    return 1;
+    return FuncParams_node;
 }
-int analyse_FuncParamsDot(){
+past analyse_FuncParamsDot(){
     list *bck ;
     bck = pot;
     if(tok == Y_COMMA){
         pullin("FuncParamsDot:Y_COMMA");
     }else{
         unmatch("FuncParamsDot:Y_COMMA");
-        return 0;
+        return NULL;
     }
     advance();
     bck = pot;
-    if(analyse_FuncParam()){
+    past FuncParamsDot_node = analyse_FuncParam();
+    if(judge(FuncParamsDot_node)){
         path("FuncParamsDot","FuncParam");
     }else{
         fail("FuncParamsDot","FuncParam");
         rollback(bck);
-        return 0;
+        Free(FuncParamsDot_node);
+        return NULL;
     }
     advance();
     bck = pot;
-    if(analyse_FuncParamsDot()){
+    FuncParamsDot_node->next = analyse_FuncParamsDot();
+    if(judge(FuncParamsDot_node->next)){
         path("FuncParamsDot","FuncParamsDot");
     }else{
         fail("FuncParamsDot","FuncParamsDot");
@@ -478,17 +568,21 @@ int analyse_FuncParamsDot(){
     }
     return 1;
 }
-int analyse_ConstDef(){
+past analyse_ConstDef(){
     list *bck;
     bck = pot;
+    past ConstDef_node = newAstNode(VAR_DECL,NULL,NULL);
     if(tok != Y_ID){
         unmatch("ConstDef:Y_ID");
-        return 0;
+        Free(ConstDef_node);
+        return NULL;
     }
     pullin("ConstDef:Y_ID");
+    ConstDef_node->svalue = pot->s;
     advance();
     bck = pot;
-    if(analyse_ConstExps()){
+    past tt = analyse_ConstExps();
+    if(judge(tt)){
         path("ConstDef","ConstExps");
         advance();
         bck = pot;
@@ -496,185 +590,197 @@ int analyse_ConstDef(){
         fail("ConstDef","ConstExps");
         rollback(bck);
     }
+    Free(tt);
     if(tok!=Y_ASSIGN){
         unmatch("ConstDef:Y_ASSIGN");
-        return 0;
+        Free(ConstDef_node);
+        return NULL;
     }
     pullin("ConstDef:Y_ASSIGN");
     advance();
     bck = pot;
-    if(analyse_ConstInitVal()){
+    ConstDef_node->left = analyse_ConstInitVal();
+    if(judge(ConstDef_node->left)){
         path("ConstDef","ConstInitVal");
     }else{
         fail("ConstDef","ConstInitVal");
         rollback(bck);
-        return 0;
+        Free(ConstDef_node);
+        return NULL;
     }
-    return 1;
+    return ConstDef_node;
 }
-int analyse_ConstDefs(){
+//need to change
+past analyse_ConstDefs(){
     list *bck;
     bck = pot;
-    if(analyse_ConstDef()){
+    past ConstDefs_node = analyse_ConstDef();
+    if(judge(ConstDefs_node)){
         path("ConstDefs","ConstDef");
-        advance();
-        bck = pot;
-        if(tok!=Y_COMMA){
-            unmatch("ConstDefs:Y_COMMA");
-            return 0;
-        }
-        pullin("ConstDefs:Y_COMMA");
-        advance();
-        bck = pot;
-        if(analyse_ConstDef()){
-            path("ConstDefs","ConstDef");
-        }else{
-            fail("ConstDefs","ConstDef");
-            rollback(bck);
-            return 0;
-        }
     }else{
         fail("ConstDefs","ConstDef");
         rollback(bck);
-        return 0;
+        Free(ConstDefs_node);
+        return NULL;
     }
     advance();
     bck = pot;
-    if(analyse_ConstDefsDot()){
+    ConstDefs_node->next = analyse_ConstDefsDot();
+    if(judge(ConstDefs_node)){
         path("ConstDefs","ConstDefsDot");
     }else{
         fail("ConstDefs","ConstDefsDot");
         rollback(bck->lst);
     }
-    return 1;
+    return ConstDefs_node;
 }
-int analyse_ConstDefsDot(){
+//need to change
+past analyse_ConstDefsDot(){
     list *bck ;
     bck = pot;
     if(tok != Y_COMMA){
         unmatch("ConstDefsDot:Y_COMMA");
-        return 0;
+        return NULL;
     }
     pullin("ConstDefsDot:Y_COMMA");
     advance();
     bck = pot;
-    if(analyse_ConstDef()){
+    past ConstDefsDot_node = analyse_ConstDef();
+    if(judge(ConstDefsDot_node)){
         path("ConstDefsDot","ConstDef");
     }else{
         fail("ConstDefsDot","ConstDef");
         rollback(bck);
-        return 0;
+        Free(ConstDefsDot_node);
+        return NULL;
     }
     advance();
     bck = pot;
-    if(analyse_ConstDefsDot()){
+    ConstDefsDot_node->next = analyse_ConstDefsDot();
+    if(judge(ConstDefsDot_node->next)){
         path("ConstDefsDot","ConstDefsDot");
     }else{
         fail("ConstDefsDot","ConstDefsDot");
         rollback(bck->lst);
     }
-    return 1;
+    return ConstDefsDot_node;
 }
-int analyse_VarDef(){
+past analyse_VarDef(){
     list *bck;
     bck = pot;
+    past VarDef_node = newAstNode(VAR_DECL,NULL,NULL);
     if (tok!=Y_ID){
         unmatch("VarDef:Y_ID");
-        return 0;
+        Free(VarDef_node);
+        return NULL;
     }
     pullin("VarDef:Y_ID");
+    VarDef_node->svalue = pot->s;
     advance();
     bck = pot;
     if(tok == Y_ASSIGN){
         pullin("VarDef:Y_ASSIGN");
         advance();
         bck = pot;
-        if(analyse_InitVal()){
+        VarDef_node->left = analyse_InitVal();
+        if(judge(VarDef_node->left)){
             path("VarDef","InitVal");
         }else{
             fail("VarDef","InitVal");
-            return 0;
+            Free(VarDef_node);
+            return NULL;
         }
-        return 1;
+        return VarDef_node;
     }else{
         unmatch("VarDef:Y_ASSIGN");
         rollback(bck->lst);
     }
     advance();
     bck = pot;
-    if(analyse_ConstExps()){
+    past t = analyse_ConstExps();
+    if(judge(t)){
         path("VarDef","ConstExps");
         advance();
         bck = pot;
         if(tok != Y_ASSIGN){
             rollback(bck->lst);
             unmatch("Vardef:Y_ASSIGN");
-            return 1;
+            Free(t);
+            return VarDef_node;
         }
         pullin("VarDef:Y_ASSIGN");
+        Free(t);
         advance();
         bck = pot;
-        if(analyse_InitVal()){
+        VarDef_node->left = analyse_InitVal();
+        if(judge(VarDef_node->left)){
             path("VarDef","InitVal");
         }else{
             fail("VarDef","InitVal");
             rollback(bck);
-            return 0;
+            Free(VarDef_node);
+            return VarDef_node;
         }
     }else{
         fail("VarDef","ConstExps");
         rollback(bck->lst);
-        return 1;
+        return VarDef_node;
     }
-    return 1;
+    return VarDef_node;
 }
-int analyse_VarDecls(){
+past analyse_VarDecls(){
     list *bck;
     bck = pot;
     if(tok!=Y_COMMA){
         unmatch("VarDecls:Y_COMMA");
-        return 0;
+        return NULL;
     }
     pullin("VarDecls:Y_COMMA");
     advance();
     bck = pot;
-    if(analyse_VarDef()){
+    past VarDecls_node = analyse_VarDef();
+    if(VarDecls_node){
         path("Vardecls","VarDef");
     }else{
         fail("VarDecls","VarDef");
         rollback(bck);
-        return 0;
+        Free(VarDecls_node);
+        return NULL;
     }
     advance();
     bck = pot;
-    if(analyse_VarDecls()){
+    VarDecls_node->next = analyse_VarDecls();
+    if(judge(VarDecls_node->next)){
         path("VarDecls","VarDecls");
     }else{
         fail("VarDecls","VarDecls");
         rollback(bck->lst);
     }
-    return 1;
+    return VarDecls_node;
 }
-int analyse_BlockItems(){
+past analyse_BlockItems(){
     list *bck;
     bck = pot;
-    if(analyse_BlockItem()){
+    past BlockItems_node = analyse_BlockItem();
+    if(judge(BlockItems_node)){
         path("BlockItems","BlockItem");
     }else{
         fail("BlockItems","BlockItem");
         rollback(bck);
-        return 0;
+        return NULL;
     }
     advance();
     bck = pot;
-    if(analyse_BlockItems()){
+    BlockItems_node->next = analyse_BlockItems();
+    if(judge(BlockItems_node->next)){
         path("BockItems","BlockItems");
     }else{
         rollback(bck->lst);
         fail("BlockItems","BlockItems");
     }
-    return 1;
+    return BlockItems_node;
 }
+//this line
 int analyse_FuncParam(){
     list *bck;
     bck = pot;
@@ -1603,13 +1709,13 @@ int main(int argc, char **argv)
     int res = analyse_CompUnit();
     printf("res: %d\n",res);
     /*debug out lin->val lin->s part*/
-    // #ifdef DEBUG_OUT
-    // list *lin;
-    // lin=list_head;
-    // while(lin->nxt!=NULL){
-    //     lin=lin->nxt;
-    //     printf("[*]int list : tok: %d yytext: %s\n",lin->val,lin->s);
-    // }
-    // #endif
+    #ifdef DEBUG_OUT
+    list *lin;
+    lin=list_head;
+    while(lin->nxt!=NULL){
+        lin=lin->nxt;
+        printf("[*]int list : tok: %d yytext: %s\n",lin->val,lin->s);
+    }
+    #endif
     return 0;
 }
