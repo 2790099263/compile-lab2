@@ -15,7 +15,7 @@
 // #define DEBUG_OUT
 // #define DEBUG
 #define WHILE
-// #define DEBUG_LOG
+#define DEBUG_LOG
 
 /*Linked List part begin*/
 typedef struct list_node
@@ -110,9 +110,10 @@ void advance(){
         pot=pot->nxt;
         // strcpy(s_now,pot->s);
         #ifdef DEBUG_LOG
-        printf("[+]         advance: %d %s\n",pot->val,yytext);
+        printf("[+]         advance: %d %s\n",pot->val,pot->s);
         #endif
         tok=pot->val;
+        // s_now = pot->s;
         return ;
     }
     #ifdef DEBUG_LOG
@@ -183,43 +184,44 @@ struct _ast{
 if below part is right way ,return 1;
 else return 0;
 */
-int analyse_Decl();
-int analyse_CompUnit();
-int analyse_FuncDef();
-int analyse_ConstDecl();
-int analyse_VarDecl();
-int analyse_Type();
-int analyse_ConstDefs();
-int analyse_ConstExps();
-int analyse_ConstExp();
-int analyse_ConstInitVals();
-int analyse_ConstInitVal();
-int analyse_VarDecls();
-int analyse_VarDef();
-int analyse_InitVal();
-int analyse_Exp();
-int analyse_InitVals();
-int analyse_FuncParams();
-int analyse_FuncParam();
-int analyse_Subscripts();
-int analyse_Block();
-int analyse_BlockItems();
-int analyse_BlockItem();
-int analyse_Stmt();
-int analyse_LVal();
-int analyse_LOrExp();
-int analyse_AddExp();
-int analyse_ArraySubscripts();
-int analyse_PrimaryExp();
-int analyse_UnaryExp();
-int analyse_CallParams();
-int analyse_MulExp();
-int analyse_RelExp();
-int analyse_EqExp();
-int analyse_LAndExp();
-int analyse_ConstDefsDot();
-int analyse_MulExpDot();
-int analyse_FuncParamsDot();
+past analyse_Decl();
+past analyse_CompUnit();
+past analyse_FuncDef();
+past analyse_ConstDecl();
+past analyse_VarDecl();
+past analyse_Type();
+past analyse_ConstDefs();
+past analyse_ConstExps();
+past analyse_ConstExp();
+past analyse_ConstInitVals();
+past analyse_ConstInitVal();
+past analyse_VarDecls();
+past analyse_VarDef();
+past analyse_InitVal();
+past analyse_Exp();
+past analyse_InitVals();
+past analyse_FuncParams();
+past analyse_FuncParam();
+past analyse_Subscripts();
+past analyse_Block();
+past analyse_BlockItems();
+past analyse_BlockItem();
+past analyse_Stmt();
+past analyse_LVal();
+past analyse_LOrExp();
+past analyse_AddExp();
+past analyse_AddExpDot();
+past analyse_ArraySubscripts();
+past analyse_PrimaryExp();
+past analyse_UnaryExp();
+past analyse_CallParams();
+past analyse_MulExp();
+past analyse_RelExp();
+past analyse_EqExp();
+past analyse_LAndExp();
+past analyse_ConstDefsDot();
+past analyse_MulExpDot();
+past analyse_FuncParamsDot();
 past newAstNode(node_type nodetype,past left,past right);
 #endif
 /*function decl part end*/
@@ -256,9 +258,10 @@ past analyse_CompUnit(){
     CompUnit_node->left = analyse_Decl();
     if(judge(CompUnit_node->left)) {
         advance();
-        CompUnit_node->next = analyse_CompUnit();
-        if(judge(CompUnit_node->next)){
+        past t = analyse_CompUnit();
+        if(judge(t)){
             path("CompUnit","CompUnit");
+            CompUnit_node->left->next = t->left;
         }
         else{
             fail("CompUnit","CompUnit");
@@ -273,9 +276,10 @@ past analyse_CompUnit(){
     CompUnit_node->left = analyse_FuncDef();
     if(judge(CompUnit_node->left)) {
         advance();
-        CompUnit_node->next = analyse_CompUnit();
-        if(judege(CompUnit_node->next)){
+        past t = analyse_CompUnit();
+        if(judge(t)){
             path("CompUnit","CompUnit");
+            CompUnit_node->left->next = t->left;
         }else{
             fail("CompUnit","CompUnit");
         }
@@ -286,6 +290,7 @@ past analyse_CompUnit(){
         fail("CompUnit","FuncDef");
         rollback(bck);
     }
+    Free(CompUnit_node);
     return NULL;
 }
 past analyse_Decl() {
@@ -316,8 +321,8 @@ past analyse_FuncDef() {
     list *bck;
     bck = pot;
     past FuncDef_node = newAstNode(FUNCTION_DECL,NULL,NULL);
-    FuncDef_node = analyse_Type();
-    if(judge(FuncDef_node)){
+    past t = analyse_Type();
+    if(judge(t)){
         path("FuncDef","Type");
     }
     else {
@@ -364,7 +369,7 @@ past analyse_FuncDef() {
     advance();
     bck = pot;
     FuncDef_node->right = analyse_Block();
-    if(judge(FuncDef_node)) {
+    if(judge(FuncDef_node->right)) {
         path("FuncDef","Y_RPAR");
         return FuncDef_node;
     }
@@ -448,8 +453,8 @@ past analyse_VarDecl() {
     }
     advance();
     bck = pot;
-    VarDecl_node->next = analyse_VarDecls();
-    if(judge(VarDecl_node->next)) {
+    VarDecl_node->left->next = analyse_VarDecls();
+    if(judge(VarDecl_node->left->next)) {
         path("VarDecl","VarDecls");
     }else{
         fail("VarDecl","VarDecls");
@@ -498,7 +503,7 @@ past analyse_Block() {
     advance();
     bck = pot;
     Block_node->left = analyse_BlockItems();
-    if(judge(Block_node)){
+    if(judge(Block_node->left)){
         path("Block","BlockItems");
     }else{
         rollback(bck->lst);
@@ -780,29 +785,32 @@ past analyse_BlockItems(){
     }
     return BlockItems_node;
 }
-//this line
-int analyse_FuncParam(){
+past analyse_FuncParam(){
     list *bck;
     bck = pot;
-    if(analyse_Type()){
+    if(analyse_Type()!=NULL){
         path("FuncParam","Type");
     }else{
         fail("FuncParam","Type");
         rollback(bck);
-        return 0;
+        return NULL;
     }
+    past FuncParam_node = newAstNode(PARM_DECL,NULL,NULL);
     advance();
     bck = pot;
     if(tok != Y_ID){
         unmatch("FuncParam:Y_ID");
-        return 0;
+        return NULL;
     }
     pullin("FuncParam:Y_ID");
+    FuncParam_node->svalue = pot->s;
     advance();
     bck = pot;
-    if(analyse_ArraySubscripts()){
+    past t = analyse_ArraySubscripts();
+    if(judge(t)){
         path("FuncParam","ArraySubscripts");
-        return 1;
+        Free(t);
+        return FuncParam_node;
     }else{
         fail("FuncParam","ArraySubscripts");
         rollback(bck->lst);
@@ -812,84 +820,97 @@ int analyse_FuncParam(){
     if(tok!=Y_LSQUARE){
         unmatch("FuncParam:Y_LSQUARE");
         rollback(bck->lst);
-        return 1;
+        return FuncParam_node;
     }
     pullin("FuncParam:Y_LSQUARE");
     advance();
     bck = pot ;
     if(tok!=Y_RSQUARE){
         unmatch("FuncParam:Y_REQUARE");
-        return 0;
+        Free(FuncParam_node);
+        return NULL;
     }
     pullin("FuncParam:Y_REQUARE");
     advance();
     bck = pot;
-    if(analyse_ArraySubscripts()){
+    t = analyse_ArraySubscripts();
+    if(judge(t)){
         path("FuncParam","ArraySubscripts");
     }else{
         fail("FuncParam","ArraySubscripts");
         rollback(bck->lst);
     }
-    return 1;
+    return FuncParam_node;
 }
-int analyse_ConstExps(){
+past analyse_ConstExps(){
     list *bck;
     bck = pot;
+    past ConstExps_node = newAstNode(ARRAY_SUBSCRIPT_EXPR,NULL,NULL);
     if(tok != Y_LSQUARE){
         unmatch("ConstExps:Y_LSQUARE");
-        return 0;
+        Free(ConstExps_node);
+        return NULL;
     }
     pullin("ConstExps:Y_LSQUARE");
     advance();
     bck = pot;
-    if(analyse_ConstExp()){
+    ConstExps_node->right = analyse_ConstExp();
+    if(judge(ConstExps_node->right)){
         path("ConstExps","ConstExp");
     }else{
         fail("ConstExps","ConstExp");
         rollback(bck);
-        return 0;
+        Free(ConstExps_node);
+        return NULL;
     }
     advance();
     bck = pot;
     if(tok!=Y_RSQUARE){
         unmatch("ConstExps:Y_RSQUARE");
-        return 0;
+        Free(ConstExps_node);
+        return NULL;
     }
     pullin("ConstExps:Y_RSQUARE");
     advance();
     bck = pot;
-    if(analyse_ConstExps()){
+    ConstExps_node->next = analyse_ConstExps();
+    if(judge(ConstExps_node->next)){
         path("ConstExps","ConstExps");
     }else{
         fail("ConstExps","ConstExps");
         rollback(bck->lst);
     }
-    return 1;
+    return ConstExps_node;
 }
-int analyse_ConstInitVal(){
+past analyse_ConstInitVal(){
     list *bck;
     bck = pot;
-    if(analyse_ConstExp()){
+    past ConstInitVal_node = analyse_ConstExp();
+    if(judge(ConstInitVal_node)){
         path("ConstInitVal","ConstExp");
-        return 1;
+        return ConstInitVal_node;
     }else{
         fail("ConstInitVal","ConstExp");
         rollback(bck->lst);
     }
+    ConstInitVal_node = newAstNode(INIT_LIST_EXPR,NULL,NULL);
     advance();
     bck = pot;
     if(tok!=Y_LBRACKET){
         unmatch("ConstInitVal:Y_LBRACKET");
-        return 0;
+        Free(ConstInitVal_node);
+        return NULL;
     }
     pullin("ConstInitVal:Y_LBRACKET");
     advance();
     bck = pot;
-    if(analyse_ConstInitVal()){
+    ConstInitVal_node->left = analyse_ConstInitVal();
+    if(judge(ConstInitVal_node->left)){
         path("ConstInitVal","ConstInitVal");
         advance();
         bck = pot;
-        if(analyse_ConstInitVals()){
+        ConstInitVal_node->left->next = analyse_ConstInitVals();
+        if(judge(ConstInitVal_node->left->next)){
             path("ConstInitVal","ConstInitVals");
         }else{
             fail("ConstInitVal","ConstInitVal");
@@ -903,35 +924,41 @@ int analyse_ConstInitVal(){
     bck = pot;
     if(tok != Y_RBRACKET){
         unmatch("ConstInitVal:Y_BRACKET");
-        return 0;
+        Free(ConstInitVal_node);
+        return NULL;
     }
     pullin("ConstInitVal:Y_BRACKET");
-    return 1;
+    return ConstInitVal_node;
 }
-int analyse_InitVal(){
+past analyse_InitVal(){
     list *bck;
     bck = pot;
-    if(analyse_Exp()){
+    past InitVal_node = analyse_Exp();
+    if(judge(InitVal_node)){
         path("InitVal","Exp");
-        return 1;
+        return InitVal_node;
     }else{
         fail("InitVal","Exp");
         rollback(bck->lst);
     }
+    InitVal_node = newAstNode(INIT_LIST_EXPR,NULL,NULL);
     advance();
     bck = pot;
     if(tok != Y_LBRACKET){
         unmatch("InitVal:Y_LBRACKET");
-        return 0;
+        Free(InitVal_node);
+        return NULL;
     }
     pullin("InitVal:Y_LBRACKET");
     advance();
     bck = pot;
-    if(analyse_InitVal()){
+    InitVal_node->left = analyse_InitVal();
+    if(judge(InitVal_node->left)){
         path("InitVal","InitVal");
         advance();
         bck = pot;
-        if(analyse_InitVals()){
+        InitVal_node->left->next = analyse_InitVals();
+        if(judge(InitVal_node->left->next)){
             path("InitVal","InitVals");
         }else{
             fail("InitVal","InitVals");
@@ -945,202 +972,230 @@ int analyse_InitVal(){
     bck = pot;
     if(tok != Y_RBRACKET){
         unmatch("InitVal:Y_RBRACKET");
-        return 0;
+        Free(InitVal_node);
+        return NULL;
     }
     pullin("InitVal:Y_RBRACKET");
-    return 1;
+    return InitVal_node;
 }
-int analyse_BlockItem(){
+past analyse_BlockItem(){
     list *bck ;
     bck = pot;
-    if(analyse_Decl()){
+    past BlockItem_node = analyse_Decl();
+    if(judge(BlockItem_node)){
         path("BlockItem","Decl");
-        return 1;
+        return BlockItem_node;
     }else{
         fail("BlockItem","Decl");
         rollback(bck->lst);
     }
     advance();
     bck = pot;
-    if(analyse_Stmt()){
+    BlockItem_node = analyse_Stmt();
+    if(judge(BlockItem_node)){
         path("BlockItem","Stmt");
-        return 1;
+        return BlockItem_node;
     }else{
         fail("BlockItem","Stmt");
         rollback(bck->lst);
     }
-    return 0;
+    Free(BlockItem_node);
+    return NULL;
 }
-int analyse_ArraySubscripts(){
+past analyse_ArraySubscripts(){
     list *bck;
     bck = pot;
     if(tok != Y_LSQUARE){
         unmatch("ArraySubscripts:Y_LSQUARE");
-        return 0;
+        return NULL;
     }
     pullin("ArraySubscripts:Y_Lsquare");
     advance();
     bck = pot;
-    if(analyse_Exp()){
+    past ArraySubscripts_node = newAstNode(ARRAY_SUBSCRIPT_EXPR,NULL,NULL);
+    ArraySubscripts_node->right = analyse_Exp();
+    if(judge(ArraySubscripts_node->right)){
         path("ArraySubscripts","Exp");
     }else{
         fail("ArraySubscripts","Exp");
         rollback(bck->lst);
-        return 0;
+        Free(ArraySubscripts_node);
+        return NULL;
     }
     advance();
     bck = pot;
     if(tok != Y_RSQUARE){
         unmatch("ArraySubscripts:Y_RSQUARE");
-        return 0;
+        Free(ArraySubscripts_node);
+        return NULL;
     }
     pullin("ArraySubscripts:Y_RSQUARE");
     advance();
     bck = pot;
-    if(analyse_ArraySubscripts()){
+    ArraySubscripts_node->next = analyse_ArraySubscripts();
+    if(judge(ArraySubscripts_node->next)){
         path("ArraySubscripts","ArraySubscripts");
     }else{
         fail("ArraySubscripts","ArraySubscripts");
         rollback(bck->lst);
     }
-    return 1;
+    return ArraySubscripts_node;
 }
-int analyse_ConstExp(){
+past analyse_ConstExp(){
     list *bck;
     bck = pot;
-    if(analyse_AddExp()){
+    past ConstExp_node = analyse_AddExp();
+    if(judge(ConstExp_node)){
         path("ConstExp","AddExp");
-        return 1;
+        return ConstExp_node;
     }else{
         fail("ConstExp","AddExp");
         rollback(bck);
-        return 0;
+        Free(ConstExp_node);
+        return NULL;
     }
 }
-int analyse_ConstInitVals(){
+past analyse_ConstInitVals(){
     list *bck;
     bck = pot;
     if(tok != Y_COMMA){
         unmatch("ConstInitVals:Y_COMMA");
-        return 0;
+        return NULL;
     }
     pullin("ConstInitVals:Y_COMMA");
     advance();
     bck = pot;
-    if(analyse_ConstInitVal()){
+    past ConstInitVals_node = analyse_ConstInitVal();
+    if(judge(ConstInitVals_node)){
         path("ConstInitVals","ConstInitVal");
     }else{
         fail("ConstInitVals","ConstInitVal");
         rollback(bck);
-        return 0;
+        Free(ConstInitVals_node);
+        return NULL;
     }
     advance();
     bck = pot;
-    if(analyse_ConstInitVals()){
+    ConstInitVals_node->next = analyse_ConstInitVals();
+    if(judge(ConstInitVals_node->next)){
         path("ConstInitVals","ConstInitVals");
     }else{
         fail("ConstInitVals","ConstInitVals");
         rollback(bck->lst);
     }
-    return 1;
+    return ConstInitVals_node;
 }
-int analyse_Exp(){
+past analyse_Exp(){
     list *bck;
     bck = pot;
-    if(analyse_AddExp()){
+    past Exp_node = analyse_AddExp();
+    if(judge(Exp_node)){
         path("Exp","AddExp");
-        return 1;
+        return Exp_node;
     }else{
         fail("Exp","AddExp");
         rollback(bck);
-        return 0;
+        Free(Exp_node);
+        return NULL;
     }
 }
-int analyse_InitVals(){
+past analyse_InitVals(){
     list *bck ;
     bck = pot;
     if(tok != Y_COMMA){
         unmatch("InitVals:Y_COMMA");
-        return 0;
+        return NULL;
     }
     pullin("InitVals:Y_COMMA");
     advance();
     bck = pot;
-    if(analyse_InitVal()){
+    past InitVals_node = analyse_InitVal();
+    if(judge(InitVals_node)){
         path("InitVals","InitVal");
     }else{
         fail("InitVals","InitVal");
         rollback(bck);
-        return 0;
+        Free(InitVals_node);
+        return NULL;
     }
     advance();
     bck = pot;
-    if(analyse_InitVals()){
+    InitVals_node->next = analyse_InitVals();
+    if(judge(InitVals_node->next)){
         path("InitVals","InitVals");
     }else{
         fail("InitVals","InitVals");
         rollback(bck->lst);
     }
-    return 1;
+    return InitVals_node;
 }
-int analyse_Stmt(){
+past analyse_Stmt(){
     list *bck,*bck2;
     bck = pot ;
     bck2= pot;
-    if(analyse_LVal()){
+    past Stmt_node = newAstNode(BINARY_OPERATOR,NULL,NULL);
+    Stmt_node->left = analyse_LVal();
+    if(judge(Stmt_node->left)){
         path("Stmt","LVal");
         advance();
         bck = pot;
         if(tok != Y_ASSIGN){
             unmatch("Stmt:Y_ASSIGN");
             rollback(bck2->lst);
+            Stmt_node ->left=NULL;
         }
         else pullin("Stmt:Y_ASSIGN");
+        Stmt_node->svalue = pot->s;
         advance();
         bck = pot;
-        if(analyse_Exp()){
+        Stmt_node->right = analyse_Exp();
+        if(judge(Stmt_node->right)){
             path("Stmt","Exp");
         }else{
             fail("Stmt","Exp");
             rollback(bck);
-            return 0;
+            Free(Stmt_node);
+            return NULL;
         }
         advance();
         bck = pot;
         if(tok != Y_SEMICOLON){
             unmatch("Stmt:Y_SEMICOLON");
-            return 0;
+            Free(Stmt_node);
+            return NULL;
         }
         pullin("Stmt:Y_SEMICOLON");
-        return 1;
+        return Stmt_node;
     }else{
         fail("Stmt","LVal");
         rollback(bck);
     }
-    if(analyse_Exp()){
-        path("Stmt","Exp");
-        advance();
-        bck = pot;
-        if(tok != Y_SEMICOLON){
-            unmatch("Stmt:SEMICOLON");
-            return 0;
-        }
-        pullin("Stmt:SEMICOLON");
-        return 1;
-    }else{
-        fail("Stmt","Exp");
-        rollback(bck);
-    }
-    if(analyse_Block()){
+    // if(analyse_Exp()){
+    //     path("Stmt","Exp");
+    //     advance();
+    //     bck = pot;
+    //     if(tok != Y_SEMICOLON){
+    //         unmatch("Stmt:SEMICOLON");
+    //         return 0;
+    //     }
+    //     pullin("Stmt:SEMICOLON");
+    //     return 1;
+    // }else{
+    //     fail("Stmt","Exp");
+    //     rollback(bck);
+    // }
+    Stmt_node = analyse_Block();
+    if(judge(Stmt_node)){
         path("Stmt","Block");
-        return 1;
+        return Stmt_node;
     }else{
         fail("Stmt","Block");
         rollback(bck);
     }
     if(tok == Y_SEMICOLON){
         pullin("Stmt:Y_SEMICOLON");
-        return 1;
+        Stmt_node = newAstNode(NULL_STMT,NULL,NULL);
+        return Stmt_node;
     }
     else if(tok == Y_WHILE){
         pullin("Stmt:Y_WHILE");
@@ -1148,34 +1203,41 @@ int analyse_Stmt(){
         bck = pot;
         if(tok != Y_LPAR){
             unmatch("Stmt:Y_LPAR");
-            return 0;
+            Free(Stmt_node);
+            return NULL;
         }
         pullin("Stmt:Y_LPAR");
         advance();
         bck = pot;
-        if(analyse_LOrExp()){
+        Stmt_node = newAstNode(WHILE_STMT,NULL,NULL);
+        Stmt_node->left = analyse_LOrExp();
+        if(judge(Stmt_node->left)){
             path("Stmt","LOrExp");
         }else{
             fail("Stmt","LOrExp");
             rollback(bck);
-            return 0;
+            Free(Stmt_node);
+            return NULL;
         }
         advance();
         bck = pot;
         if(tok != Y_RPAR){
             unmatch("Stmt:Y_RPAR");
-            return 0;
+            Free(Stmt_node);
+            return NULL;
         }
         pullin("Stmt:Y_RPAR");
         advance();
         bck = pot;
-        if(analyse_Stmt()){
+        Stmt_node->right = analyse_Stmt();
+        if(judge(Stmt_node->right)){
             path("Stmt","Stmt");
         }else{
             fail("Stmt","Stmt");
-            return 0;
+            Free(Stmt_node);
+            return NULL;
         }
-        return 1;
+        return Stmt_node;
     }
     else if(tok == Y_IF){
         pullin("Stmt:Y_IF");
@@ -1183,78 +1245,92 @@ int analyse_Stmt(){
         bck = pot ;
         if(tok != Y_LPAR){
             unmatch("Stmt:Y_LPAR");
-            return 0;
+            return NULL;
         }
         pullin("Stmt:Y_LPAR");
         advance();
         bck = pot;
-        if(analyse_LOrExp()){
+        Stmt_node = newAstNode(IF_STMT,NULL,NULL);
+        Stmt_node->if_cond = analyse_LOrExp();
+        if(judge(Stmt_node->if_cond)){
             path("Stmt","LOrExp");
         }else{
             fail("Stmt","LOrExp");
-            return 0;
+            Free(Stmt_node);
+            return NULL;
         }
         advance();
         bck = pot;
         if(tok != Y_RPAR){
             unmatch("Stmt:Y_RPAR");
-            return 0;
+            Free(Stmt_node);
+            return NULL;
         }
         pullin("Stmt:Y_RPAR");
         advance();
-        if(analyse_Stmt()){
+        Stmt_node ->left = analyse_Stmt();
+        if(judge(Stmt_node->left)){
             path("Stmt","Stmt");
         }else{
             fail("Stmt","Stmt");
             rollback(bck);
-            return 0;
+            Free(Stmt_node);
+            return NULL;
         }
         advance();
         bck = pot;
         if(tok !=Y_ELSE){
             rollback(bck->lst);
             unmatch("Stmt:Y_ELSE");
-            return 1;
+            return Stmt_node;
         }
         pullin("Stmt:Y_ELSE");
         advance();
         bck = pot;
-        if(analyse_Stmt()){
+        Stmt_node->right = analyse_Stmt();
+        if(judge(Stmt_node->right)){
             path("Stmt","Stmt");
         }else{
             fail("Stmt","Stmt");
             rollback(bck);
-            return 0;
+            Free(Stmt_node);
+            return NULL;
         }
-        return 1;
+        return Stmt_node;
     }
     if(tok == Y_BREAK){
         pullin("Stmt:Y_BREAK");
         advance();
+        Stmt_node = newAstNode(BREAK_STMT,NULL,NULL);
         bck = pot;
         if(tok != Y_SEMICOLON){
             unmatch("Stmt:Y_SEMICOLON");
-            return 0;
+            Free(Stmt_node);
+            return NULL;
         }
         pullin("Stmt:Y_SEMICOLON");
-        return 1;
+        return Stmt_node;
     }
     if(tok == Y_CONTINUE){
         pullin("Stmt:Y_CONTINUE");
         advance();
         bck = pot;
+        Stmt_node = newAstNode(CONTINUE_STMT,NULL,NULL);
         if(tok != Y_SEMICOLON){
             unmatch("Stmt:Y_SEMICOLON");
-            return 0;
+            Free(Stmt_node);
+            return NULL;
         }
         pullin("Stmt:Y_SEMICOLON");
-        return 1;
+        return Stmt_node;
     }
     if(tok == Y_RETURN){
         pullin("Stmt:Y_RETURN");
         advance();
         bck = pot;
-        if(analyse_Exp()){
+        Stmt_node = newAstNode(RETURN_STMT,NULL,NULL);
+        Stmt_node->left = analyse_Exp();
+        if(judge(Stmt_node->left)){
             path("Stmt","Exp");
         }else{
             fail("Stmt","Exp");
@@ -1264,34 +1340,41 @@ int analyse_Stmt(){
         bck = pot;
         if(tok != Y_SEMICOLON){
             unmatch("Stmt:Y_SEMICOLON");
-            return 0;
+            Free(Stmt_node);
+            return NULL;
         }
         pullin("Stmt:Y_SEMICOLON");
-        return 1;
+        return Stmt_node;
     }
-    return 0;
+    Free(Stmt_node);
+    return NULL;
 }
-int analyse_AddExp(){
+past analyse_AddExp(){
     list *bck ;
     bck = pot;
-    if(analyse_MulExp()){
+    past AddExp_node = analyse_MulExp();
+    if(judge(AddExp_node)){
         path("AddExp","MulExp");
     }else{
         fail("AddExp","MulExp");
         rollback(bck);
-        return 0;
+        Free(AddExp_node);
+        return NULL;
     }
     advance();
     bck = pot;
-    if(analyse_AddExpDot()){
+    past t = analyse_AddExpDot();
+    if(judge(t)){
         path("AddExp","AddExpDot");
+        t->left = AddExp_node;
+        AddExp_node=t;
     }else{
         fail("AddExp","AddExpDot");
         rollback(bck->lst);
     }
-    return 1;
+    return AddExp_node;
 }
-int analyse_AddExpDot(){
+past analyse_AddExpDot(){
     list *bck;
     bck = pot;
     if(tok == Y_ADD){
@@ -1299,56 +1382,69 @@ int analyse_AddExpDot(){
     }else if(tok == Y_SUB){
         pullin("AddExpDot:Y_SUB");
     }else{
+        unmatch("AddExpDot:Y_ADD||Y_SUB");
         rollback(bck);
-        return 0;
+        return NULL;
     }
+    past AddExpDot_node = newAstNode(BINARY_OPERATOR,NULL,NULL);
+    AddExpDot_node->svalue = pot->s;
     advance();
     bck = pot;
-    if(analyse_MulExp()){
+    AddExpDot_node->right=analyse_MulExp();
+    if(judge(AddExpDot_node->right)){
         path("AddExpDot","MulExp");
     }else{
         fail("AddExpDot","MulExp");
         rollback(bck);
-        return 0;
+        Free(AddExpDot_node);
+        return NULL;
     }
     advance();
     bck = pot;
-    if(analyse_AddExpDot()){
+    past t = analyse_AddExpDot();
+    if(judge(t)){
         path("AddExpDot","AddExpDot");
+        t->left = AddExpDot_node;
+        AddExpDot_node = t;
     }else{
         fail("AddExpDot","AddExpDot");
         rollback(bck->lst);
     }
-    return 1;
+    return AddExpDot_node;
 }
-int analyse_LVal(){
+past analyse_LVal(){
     list *bck ;
     bck = pot;
     if(tok != Y_ID){
         unmatch("LVal:Y_ID");
-        return 0;
+        return NULL;
     }
+    past LVal_node = newAstNode(DECL_REF_EXPR,NULL,NULL);
+    LVal_node->svalue = pot->s;
     pullin("LVal:Y_ID");
     advance();
     bck = pot;
-    if(analyse_ArraySubscripts()){
+    LVal_node->left = analyse_ArraySubscripts();
+    if(judge(LVal_node->left)){
         path("LVal","ArraySubScripts");
-        return 1;
+        return LVal_node;
     }else{
         fail("LVal","ArraySubScripts");
         rollback(bck->lst);
     }
-    return 1;
+    return LVal_node;
 }
-int analyse_LOrExp(){
+past analyse_LOrExp(){
     list *bck;
     bck = pot;
-    if(analyse_LAndExp()){
+    past LOrExp_node = analyse_LAndExp();
+    if(judge(LOrExp_node)){
         path("LOrExp","LAndExp");
     }else{
         fail("LOrExp","LAndExp");
         rollback(bck);
-        return 0;
+        Free(LOrExp_node);
+        return NULL;
     }
     advance();
     bck = pot;
@@ -1356,113 +1452,142 @@ int analyse_LOrExp(){
         pullin("LOrExp:Y_OR");
         advance();
         bck = pot;
-        if(analyse_LOrExp()){
+        LOrExp_node->left = analyse_LOrExp();
+        if(judge(LOrExp_node->left)){
             path("LOrExp","LOrExp");
         }else{
             fail("LOrExp","LOrExp");
             rollback(bck);
-            return 0;
+            Free(LOrExp_node);
+            return NULL;
         }
     }else{
         unmatch("LOrExp:Y_OR");
         rollback(bck->lst);
     }
-    return 1;
+    return LOrExp_node;
 }
-int analyse_MulExp(){
+past analyse_MulExp(){
     list *bck;
     bck = pot;
-    if(analyse_UnaryExp()){
+    past MulExp_node = analyse_UnaryExp();
+    if(judge(MulExp_node)){
         path("MulExp","UnaryExp");
     }else{
         fail("MuilExp","UnaryExp");
         rollback(bck);
-        return 0;
+        Free(MulExp_node);
+        return NULL;
     }
     advance();
     bck = pot;
-    if(analyse_MulExpDot()){
+    past t =analyse_MulExpDot();
+    if(judge(t)){
         path("MulExp","MulExpDot");
+        t->left = MulExp_node;
+        MulExp_node = t;
     }else{
         fail("MulExp","MulExpDot");
         rollback(bck->lst);
+        Free(t);
     }
-    return 1;
+    // printf("\ntest\n");
+    return MulExp_node;
 }
-int analyse_MulExpDot(){
+past analyse_MulExpDot(){
     list *bck;
     bck = pot;
+    past MulExpDot_node = newAstNode(BINARY_OPERATOR,NULL,NULL);
+    MulExpDot_node->svalue = pot->s;
     if(tok == Y_MUL||tok == Y_DIV || tok == Y_MODULO){
         pullin("MulExpDot:Y_ML||Y_DIV||Y_MODLO");
     }else{
         unmatch("MulExpDot:Y_ML||Y_DIV||Y_MODLO");
-        return 0;
+        Free(MulExpDot_node);
+        return NULL;
     }
     advance();
     bck = pot;
-    if(analyse_UnaryExp()){
+    MulExpDot_node->right = analyse_UnaryExp();
+    if(judge(MulExpDot_node->right)){
         path("MulExpDot","UnaryExp");
     }else{
         fail("MulExpDot","UnaryExp");
         rollback(bck);
-        return 0;
+        Free(MulExpDot_node);
+        return NULL;
     }
     advance();
     bck = pot;
-    if(analyse_MulExpDot()){
+    past t= analyse_MulExpDot();
+    if(judge(t)){
         path("MulExpDot","MulExpDot");
+        t->left = MulExpDot_node ;
+        MulExpDot_node = t;
     }else{
         fail("MulExpDot","MulExpDot");
         rollback(bck->lst);
+        Free(t);
     }
-    return 1;
+    return MulExpDot_node;
 }
-int analyse_LAndExp(){
+past analyse_LAndExp(){
     list *bck ;
     bck = pot;
-    if(analyse_EqExp()){
+    past LAndExp_node = analyse_EqExp();
+    if(judge(LAndExp_node)){
         path("LAndExp","EqExp");
     }else{
         fail("LAndExp","EqExp");
         rollback(bck);
-        return 0;
+        Free(LAndExp_node);
+        return NULL;
     }
     advance();
     bck =pot;
     if(tok == Y_AND){
+        past t_AND = newAstNode(BINARY_OPERATOR,NULL,NULL);
+        LAndExp_node->right = t_AND;
         pullin("LAndExp:Y_AND");
         advance();
         bck =pot;
-        if(analyse_LAndExp()){
+        t_AND-> left = analyse_LAndExp();
+        if(judge(t_AND->left)){
             path("LandExp","LandExp");
         }else{
             fail("LandExp","LandExp");
             rollback(bck);
-            return 0;
+            Free(LAndExp_node);
+            return NULL;
         }
         
     }else{
         unmatch("LAndExp:Y_AND");
         rollback(bck->lst);
     }
-    return 1;
+    return LAndExp_node;
 }
-int analyse_UnaryExp(){
+past analyse_UnaryExp(){
     list *bck,*nxt;
     bck = pot;
     nxt = bck->nxt;
+    past UnaryExp_node = NULL;
     if(tok == Y_ID&&(nxt->val==Y_LPAR)){
         pullin("UnaryExp:Y_ID");
         advance();
         bck = pot;
         if(tok !=Y_LPAR){
             unmatch("UnaryExp:Y_LPAR");
-            return 0;
+            return NULL;
         }
         pullin("UnaryExp:Y_LPAR");
+        UnaryExp_node = newAstNode(CALL_EXPR,NULL,NULL);
+        UnaryExp_node->left = newAstNode(DECL_REF_EXPR,NULL,NULL);
+        UnaryExp_node->left->svalue = pot->s;
         advance();
         bck = pot;
-        if(analyse_CallParams()){
+        UnaryExp_node->right = analyse_CallParams();
+        if(judge(UnaryExp_node->right)){
             path("UnaryExp","CallParams");
         }else{
             fail("UnaryExp","CallParams");
@@ -1472,157 +1597,147 @@ int analyse_UnaryExp(){
         bck = pot;
         if(tok != Y_RPAR){
             unmatch("UnaryExp:Y_RPAR");
-            return 0;
+            Free(UnaryExp_node);
+            return NULL;
         }
         pullin("UnaryExp:Y_RPAR");
-        return 1;
+        return UnaryExp_node;
     }
-    else if(tok == Y_ADD){
-        pullin("UnaryExp:Y_ADD");
-        advance();
-        bck = pot;
-        if(analyse_UnaryExp()){
-            path("UnaryExp","UnaryExp");
-        }else{
-            fail("UnaryExp","UnaryExp");
-            rollback(bck);
-            return 0;
-        }
-        return 1;
-    }
-    else if(tok == Y_SUB){
+    else if(tok == Y_SUB || tok == Y_NOT || tok == Y_ADD){
+        UnaryExp_node = newAstNode(BINARY_OPERATOR,NULL,NULL);
+        UnaryExp_node->svalue = pot->s;
         pullin("UnaryExp:Y_SUB");
         advance();
         bck = pot;
-        if(analyse_UnaryExp()){
+        UnaryExp_node->right = analyse_UnaryExp();
+        if(judge(UnaryExp_node->right)){
             path("UnaryExp","UnaryExp");
         }else{
             fail("UnaryExp","UnaryExp");
             rollback(bck);
-            return 0;
+            Free(UnaryExp_node);
+            return NULL;
         }
-        return 1;
+        return UnaryExp_node;
     }
-    else if(tok == Y_NOT){
-        pullin("UnaryExp:Y_NOT");
-        advance();
-        bck = pot;
-        if(analyse_UnaryExp()){
-            path("UnaryExp","UnaryExp");
-        }else{
-            fail("UnaryExp","UnaryExp");
-            rollback(bck);
-            return 0;
-        }
-        return 1;
-    }else{
-        if(analyse_PrimaryExp()){
+    else{
+        UnaryExp_node = analyse_PrimaryExp();
+        if(judge(UnaryExp_node)){
             path("UnaryExp","PrimaryExp");
-            return 1;
+            return UnaryExp_node;
         }else{
             fail("UnaryExp","PrimaryExp");
             rollback(bck);
         }
     }
-    return 0;
+    Free(UnaryExp_node);
+    return NULL;
 }
-int analyse_EqExp(){
+past analyse_EqExp(){
     list *bck ;
     bck =pot;
-    if(analyse_RelExp()){
+    past EqExp_node = analyse_RelExp();
+    if(judge(EqExp_node)){
         path("EqExp","RelExp");
     }else{
         fail("EqExp","RelExp");
         rollback(bck);
-        return 0;
+        Free(EqExp_node);
+        return NULL;
     }
     advance();
     bck = pot;
-    if(tok==Y_EQ){
-        pullin("EqExp:Y_EQ");
+    if(tok==Y_EQ || tok == Y_NOTEQ){
+        past tt = newAstNode(BINARY_OPERATOR,NULL,NULL);
+        EqExp_node->right = tt;
+        pullin("EqExp:Y_EQ||Y_NOTEQ");
         advance();
         bck = pot;
-        if(analyse_EqExp()){
+        tt->right = analyse_EqExp();
+        if(judge(tt->right)){
             path("EqExp","EqExp");
         }else{
             fail("EqExp","EqExp");
             rollback(bck);
-            return 0;
+            Free(EqExp_node);
+            return NULL;
         }
-        return 1;
-    }
-    else if(tok == Y_NOTEQ){
-        pullin("EqExp:Y_NOTEQ");
-        advance();
-        bck = pot;
-        if(analyse_EqExp()){
-            path("EqExp","EqExp");
-        }else{
-            fail("EqExp","EqExp");
-            rollback(bck);
-            return 0;
-        }
-        return 1;
+        return EqExp_node;
     }
     else {
         unmatch("EqExp:Y_EQ||Y_NOTEQ");
         rollback(bck->lst);
     }
-    return 1;
+    return EqExp_node;
 }
-int analyse_PrimaryExp(){
+past analyse_PrimaryExp(){
     list *bck ;
     bck = pot;
+    past PrimaryExp_node = NULL;
     if(tok == Y_LPAR){
         pullin("PrimaryExp:Y_LPAR");
         advance();
         bck =pot;
-        if(analyse_Exp()){
+        PrimaryExp_node = analyse_Exp();
+        if(judge(PrimaryExp_node)){
             path("PrimaryExp","Exp");
         }else{
             fail("PrimaryExp","Exp");
             rollback(bck);
-            return 0;
+            Free(PrimaryExp_node);
+            return NULL;
         }
         advance();
         bck = pot;
         if(tok != Y_RPAR){
             unmatch("PrimaryExp:Y_RPAR");
-            return 0;
+            Free(PrimaryExp_node);
+            return NULL;
         }
         pullin("ParmaryExp:Y_RPAR");
-        return 1;
+        return PrimaryExp_node;
     }
     if(tok == num_INT){
+        PrimaryExp_node = newAstNode(INTEGER_LITERAL,NULL,NULL);
+        PrimaryExp_node->svalue = pot->s;
+        PrimaryExp_node->ivalue = atoi(pot->s);
         pullin("ParmaryExp:num_INT");
-        return 1;
+        return PrimaryExp_node;
     }else{
         unmatch("ParmaryExp:num_INT");
     }
     if(tok == num_FLOAT){
+        PrimaryExp_node = newAstNode(FLOATING_LITERAL,NULL,NULL);
+        PrimaryExp_node->svalue = pot->s;
+        PrimaryExp_node->fvalue = atof(pot->s);
         pullin("ParmaryExp:num_FLOAT");
-        return 1;
+        return PrimaryExp_node;
     }else{
         unmatch("ParmaryExp:num_FLOAT");
     }
-    if(analyse_LVal()){
+    PrimaryExp_node = analyse_LVal();
+    if(judge(PrimaryExp_node)){
         path("ParamaryExp","LVal");
-        return 1;
+        return PrimaryExp_node;
     }else{
         fail("ParamaryExp","LVal");
         rollback(bck);
     }
-    return 0;
+    Free(PrimaryExp_node);
+    return NULL;
 }
-int analyse_CallParams(){
+past analyse_CallParams(){
     list *bck;
     bck = pot;
-    if(analyse_Exp()){
+    past CallParams_node = NULL;
+    CallParams_node = analyse_Exp();
+    if(judge(CallParams_node)){
         path("CallParams","Exp");
     }else{
         fail("CallParams","Exp");
         rollback(bck);
-        return 0;
+        Free(CallParams_node);
+        return NULL;
     }
     advance();
     bck = pot;
@@ -1630,49 +1745,97 @@ int analyse_CallParams(){
         pullin("CallParams:Y_COMMA");
         advance();
         bck = pot;
-        if(analyse_CallParams()){
+        CallParams_node->next = analyse_CallParams();
+        if(judge(CallParams_node->next)){
             path("CallParams","CallParams");
-            return 1;
+            return CallParams_node;
         }else{
             fail("CallParams","CallParams");
             rollback(bck);
-            return 0;
+            Free(CallParams_node);
+            return NULL;
         }
     }else{
         unmatch("CallParams:Y_COMMA");
         rollback(bck->lst);
     }
-    return 1;
+    return CallParams_node;
 }
-int analyse_RelExp(){
+past analyse_RelExp(){
     list *bck ;
     bck = pot;
-    if(analyse_AddExp()){
+    past RelExp_node = analyse_RelExp();
+    if(judge(RelExp_node)){
         path("RelExp","AddExp");
     }else{
         fail("RelExp","AddExp");
         rollback(bck);
-        return 0;
+        Free(RelExp_node);
+        return NULL;
     }
     advance();
     bck = pot;
     if(tok==Y_LESS||tok == Y_GREAT || tok == Y_LESSEQ || tok == Y_GREATEQ){
         pullin("Y_LESS|Y_GREAT|Y_LESSEQ|Y_GREATEQ");
+        past t = newAstNode(BINARY_OPERATOR,NULL,NULL);
+        t->svalue = pot->s;
         advance();
         bck = pot;
-        if(analyse_RelExp()){
+        t->right = analyse_RelExp();
+        RelExp_node ->right = t;
+        if(judge(t->right)){
             path("RelExp","RelExp");
-            return 1;
+            return RelExp_node;
         }else{
             fail("RelExp","RelExp");
             rollback(bck);
-            return 0;
+            Free(RelExp_node);
+            return NULL;
         }
     }else{
         unmatch("Y_LESS|Y_GREAT|Y_LESSEQ|Y_GREATEQ");
         rollback(bck->lst);
     }
-    return 1;
+    return RelExp_node;
+}
+void print(past cur) {
+	enum yytokentype type = cur->nodeType;
+	switch (type) {
+		case COMPOUND_STMT: printf("COMPOUND_STMT"); break;
+		case RETURN_STMT: printf("RETURN_STMT"); break;
+		case DECL_REF_EXPR: printf("DECL_REF_EXPR %s", cur->svalue); break;
+		case CALL_EXPR: printf("CALL_EXPR"); break;
+		case INTEGER_LITERAL: printf("INTEGER_LITERAL %d", cur->ivalue); break;
+		case FLOATING_LITERAL: printf("FLOATING_LITERAL %f", cur->fvalue); break;
+		case UNARY_OPERATOR: printf("UNARY_OPERATOR %s", cur->svalue); break;
+		case ARRAY_SUBSCRIPT_EXPR: printf("ARRAY_SUBSCRIPT_EXPR"); break;
+		case BINARY_OPERATOR: printf("BINARY_OPERATOR %s", cur->svalue); break;
+		case IF_STMT: printf("IF_STMT"); break;
+		case WHILE_STMT: printf("WHILE_STMT"); break;
+		case CONTINUE_STMT: printf("CONTINUE_STMT"); break;
+		case BREAK_STMT: printf("BREAK_STMT"); break;
+		case FUNCTION_DECL: printf("FUNCTION_DECL %s", cur->svalue); break;
+		case VAR_DECL: printf("VAR_DECL %s", cur->svalue); break;
+		case PARM_DECL: printf("PARM_DECL %s", cur->svalue); break;
+		case INIT_LIST_EXPR: printf("INIT_LIST_EXPR"); break;
+		case DECL_STMT: printf("DECL_STMT"); break;
+		case TRANSLATION_UNIT: printf("TRANSLATION_UNIT"); break;
+		case NULL_STMT: printf("NULL_STMT"); break;
+		default: printf("Unknown node type!"); break;
+	}
+}
+void showAst(past node, int nest) {
+	if(node == NULL) return;
+	int i = 0;
+	for(i = 0; i < nest; i ++)
+		printf("  ");
+	//printf("%d\n", node->nodeType);
+	print(node);
+	puts("");
+	showAst(node->if_cond, nest + 1);
+	showAst(node->left, nest + 1);
+	showAst(node->right, nest + 1);
+	showAst(node->next, nest);
 }
 /*functions program end*/
 
@@ -1706,8 +1869,8 @@ int main(int argc, char **argv)
     #endif
     pot = list_head;
     advance();
-    int res = analyse_CompUnit();
-    printf("res: %d\n",res);
+    past res = analyse_CompUnit();
+    showAst(res,0);
     /*debug out lin->val lin->s part*/
     #ifdef DEBUG_OUT
     list *lin;
