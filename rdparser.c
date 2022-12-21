@@ -873,8 +873,8 @@ past analyse_ConstExps(){
     pullin("ConstExps:Y_RSQUARE");
     advance();
     bck = pot;
-    ConstExps_node->next = analyse_ConstExps();
-    if(judge(ConstExps_node->next)){
+    ConstExps_node->left = analyse_ConstExps();
+    if(judge(ConstExps_node->left)){
         path("ConstExps","ConstExps");
     }else{
         fail("ConstExps","ConstExps");
@@ -1032,9 +1032,11 @@ past analyse_ArraySubscripts(){
     pullin("ArraySubscripts:Y_RSQUARE");
     advance();
     bck = pot;
-    ArraySubscripts_node->next = analyse_ArraySubscripts();
-    if(judge(ArraySubscripts_node->next)){
+    past t = analyse_ArraySubscripts();
+    if(judge(t)){
         path("ArraySubscripts","ArraySubscripts");
+        t->left = ArraySubscripts_node;
+        ArraySubscripts_node = t;
     }else{
         fail("ArraySubscripts","ArraySubscripts");
         rollback(bck->lst);
@@ -1366,8 +1368,10 @@ past analyse_AddExp(){
     past t = analyse_AddExpDot();
     if(judge(t)){
         path("AddExp","AddExpDot");
-        t->left = AddExp_node;
-        AddExp_node=t;
+        past s = t;
+        while(s->left != NULL)s=s->left;
+        s->left = AddExp_node;
+        AddExp_node = t;
     }else{
         fail("AddExp","AddExpDot");
         rollback(bck->lst);
@@ -1404,7 +1408,9 @@ past analyse_AddExpDot(){
     past t = analyse_AddExpDot();
     if(judge(t)){
         path("AddExpDot","AddExpDot");
-        t->left = AddExpDot_node;
+        past s = t;
+        while(s->left!=NULL)s=s->left;
+        s->left = AddExpDot_node;
         AddExpDot_node = t;
     }else{
         fail("AddExpDot","AddExpDot");
@@ -1424,9 +1430,13 @@ past analyse_LVal(){
     pullin("LVal:Y_ID");
     advance();
     bck = pot;
-    LVal_node->left = analyse_ArraySubscripts();
-    if(judge(LVal_node->left)){
+    past t = analyse_ArraySubscripts();
+    if(judge(t)){
         path("LVal","ArraySubScripts");
+        past s = t;
+        while(s->left!=NULL){s=s->left;}
+        s->left = LVal_node;
+        LVal_node = t;
         return LVal_node;
     }else{
         fail("LVal","ArraySubScripts");
