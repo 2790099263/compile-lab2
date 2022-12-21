@@ -1147,6 +1147,7 @@ past analyse_Stmt(){
             unmatch("Stmt:Y_ASSIGN");
             rollback(bck2->lst);
             Stmt_node ->left=NULL;
+
         }
         else pullin("Stmt:Y_ASSIGN");
         Stmt_node->svalue = pot->s;
@@ -1169,7 +1170,8 @@ past analyse_Stmt(){
             return NULL;
         }
         pullin("Stmt:Y_SEMICOLON");
-        return Stmt_node;
+        if(Stmt_node->left==NULL)return Stmt_node->right;
+        else return Stmt_node;
     }else{
         fail("Stmt","LVal");
         rollback(bck);
@@ -1460,23 +1462,18 @@ past analyse_LOrExp(){
     }
     advance();
     bck = pot;
-    if(tok == Y_OR){
+    while(tok == Y_OR){
         pullin("LOrExp:Y_OR");
+        past t = newAstNode(BINARY_OPERATOR,LOrExp_node,NULL);
+        t->svalue = pot->s;
         advance();
         bck = pot;
-        LOrExp_node->left = analyse_LOrExp();
-        if(judge(LOrExp_node->left)){
-            path("LOrExp","LOrExp");
-        }else{
-            fail("LOrExp","LOrExp");
-            rollback(bck);
-            Free(LOrExp_node);
-            return NULL;
-        }
-    }else{
-        unmatch("LOrExp:Y_OR");
-        rollback(bck->lst);
+        t->right = analyse_LAndExp();
+        LOrExp_node = t;
+        advance();
+        bck = pot;
     }
+    rollback(pot->lst);
     return LOrExp_node;
 }
 past analyse_MulExp(){
@@ -1561,26 +1558,17 @@ past analyse_LAndExp(){
     }
     advance();
     bck =pot;
-    if(tok == Y_AND){
-        past t_AND = newAstNode(BINARY_OPERATOR,NULL,NULL);
-        LAndExp_node->right = t_AND;
-        pullin("LAndExp:Y_AND");
+    while(tok == Y_AND){
+        past t = newAstNode(BINARY_OPERATOR,LAndExp_node,NULL);
+        t->svalue = pot->s;
         advance();
-        bck =pot;
-        t_AND-> left = analyse_LAndExp();
-        if(judge(t_AND->left)){
-            path("LandExp","LandExp");
-        }else{
-            fail("LandExp","LandExp");
-            rollback(bck);
-            Free(LAndExp_node);
-            return NULL;
-        }
-        
-    }else{
-        unmatch("LAndExp:Y_AND");
-        rollback(bck->lst);
+        bck = pot;
+        t->right = analyse_EqExp();
+        LAndExp_node = t;
+        advance();
+        bck = pot;
     }
+    rollback(pot->lst);
     return LAndExp_node;
 }
 past analyse_UnaryExp(){
@@ -1664,27 +1652,17 @@ past analyse_EqExp(){
     }
     advance();
     bck = pot;
-    if(tok==Y_EQ || tok == Y_NOTEQ){
-        past tt = newAstNode(BINARY_OPERATOR,NULL,NULL);
-        EqExp_node->right = tt;
-        pullin("EqExp:Y_EQ||Y_NOTEQ");
+    while(tok == Y_EQ || tok == Y_NOTEQ){
+        past t = newAstNode(BINARY_OPERATOR,EqExp_node,NULL);
+        t->svalue = pot->s;
         advance();
         bck = pot;
-        tt->right = analyse_EqExp();
-        if(judge(tt->right)){
-            path("EqExp","EqExp");
-        }else{
-            fail("EqExp","EqExp");
-            rollback(bck);
-            Free(EqExp_node);
-            return NULL;
-        }
-        return EqExp_node;
+        t->right = analyse_RelExp();
+        EqExp_node = t;
+        advance();
+        bck = pot;
     }
-    else {
-        unmatch("EqExp:Y_EQ||Y_NOTEQ");
-        rollback(bck->lst);
-    }
+    rollback(pot->lst);
     return EqExp_node;
 }
 past analyse_PrimaryExp(){
@@ -1781,7 +1759,7 @@ past analyse_CallParams(){
 past analyse_RelExp(){
     list *bck ;
     bck = pot;
-    past RelExp_node = analyse_RelExp();
+    past RelExp_node = analyse_AddExp();
     if(judge(RelExp_node)){
         path("RelExp","AddExp");
     }else{
@@ -1792,27 +1770,18 @@ past analyse_RelExp(){
     }
     advance();
     bck = pot;
-    if(tok==Y_LESS||tok == Y_GREAT || tok == Y_LESSEQ || tok == Y_GREATEQ){
+    while(tok == Y_LESS||tok == Y_GREAT || tok == Y_LESSEQ || tok ==Y_GREATEQ){
         pullin("Y_LESS|Y_GREAT|Y_LESSEQ|Y_GREATEQ");
-        past t = newAstNode(BINARY_OPERATOR,NULL,NULL);
+        past t = newAstNode(BINARY_OPERATOR,RelExp_node,NULL);
         t->svalue = pot->s;
         advance();
         bck = pot;
-        t->right = analyse_RelExp();
-        RelExp_node ->right = t;
-        if(judge(t->right)){
-            path("RelExp","RelExp");
-            return RelExp_node;
-        }else{
-            fail("RelExp","RelExp");
-            rollback(bck);
-            Free(RelExp_node);
-            return NULL;
-        }
-    }else{
-        unmatch("Y_LESS|Y_GREAT|Y_LESSEQ|Y_GREATEQ");
-        rollback(bck->lst);
+        t->right = analyse_AddExp();
+        RelExp_node = t;
+        advance();
+        bck = pot;
     }
+    rollback(pot->lst);
     return RelExp_node;
 }
 void print(past cur) {
