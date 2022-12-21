@@ -631,7 +631,7 @@ past analyse_ConstDefs(){
     advance();
     bck = pot;
     ConstDefs_node->next = analyse_ConstDefsDot();
-    if(judge(ConstDefs_node)){
+    if(judge(ConstDefs_node->next)){
         path("ConstDefs","ConstDefsDot");
     }else{
         fail("ConstDefs","ConstDefsDot");
@@ -1035,7 +1035,9 @@ past analyse_ArraySubscripts(){
     past t = analyse_ArraySubscripts();
     if(judge(t)){
         path("ArraySubscripts","ArraySubscripts");
-        t->left = ArraySubscripts_node;
+        past s = t;
+        while(s->left!=NULL)s=s->left;
+        s->left = ArraySubscripts_node;
         ArraySubscripts_node = t;
     }else{
         fail("ArraySubscripts","ArraySubscripts");
@@ -1494,7 +1496,9 @@ past analyse_MulExp(){
     past t =analyse_MulExpDot();
     if(judge(t)){
         path("MulExp","MulExpDot");
-        t->left = MulExp_node;
+        past s = t;
+        while(s->left!=NULL)s=s->left;
+        s->left = MulExp_node;
         MulExp_node = t;
     }else{
         fail("MulExp","MulExpDot");
@@ -1532,7 +1536,9 @@ past analyse_MulExpDot(){
     past t= analyse_MulExpDot();
     if(judge(t)){
         path("MulExpDot","MulExpDot");
-        t->left = MulExpDot_node ;
+        past s = t;
+        while (s->left!=NULL)s=s->left;
+        s->left = MulExpDot_node ;
         MulExpDot_node = t;
     }else{
         fail("MulExpDot","MulExpDot");
