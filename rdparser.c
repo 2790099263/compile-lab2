@@ -1590,16 +1590,17 @@ past analyse_UnaryExp(){
     past UnaryExp_node = NULL;
     if(tok == Y_ID&&(nxt->val==Y_LPAR)){
         pullin("UnaryExp:Y_ID");
+        UnaryExp_node = newAstNode(CALL_EXPR,NULL,NULL);
+        UnaryExp_node->left = newAstNode(DECL_REF_EXPR,NULL,NULL);
+        UnaryExp_node->left->svalue = pot->s;
         advance();
         bck = pot;
         if(tok !=Y_LPAR){
             unmatch("UnaryExp:Y_LPAR");
+            Free(UnaryExp_node);
             return NULL;
         }
         pullin("UnaryExp:Y_LPAR");
-        UnaryExp_node = newAstNode(CALL_EXPR,NULL,NULL);
-        UnaryExp_node->left = newAstNode(DECL_REF_EXPR,NULL,NULL);
-        UnaryExp_node->left->svalue = pot->s;
         advance();
         bck = pot;
         UnaryExp_node->right = analyse_CallParams();
