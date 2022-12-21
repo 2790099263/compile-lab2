@@ -15,14 +15,14 @@
 // #define DEBUG_OUT
 // #define DEBUG
 #define WHILE
-#define DEBUG_LOG
+// #define DEBUG_LOG
 
 /*Linked List part begin*/
 typedef struct list_node
 {
     /* data */
     int val;
-    char s[10];
+    char s[3005];
     struct list *lst;
     struct list *nxt;
 }list;
@@ -48,6 +48,8 @@ void listPush(list *now,int v,char *ss){
         error("no memory");
         exit(0);
     }
+    // printf("%s\n",ss);
+    // nx->s = (char*)malloc(sizeof(ss)+16);
     strcpy(nx->s,ss);
     nx->val=v;
     nx->lst=po;
@@ -571,7 +573,7 @@ past analyse_FuncParamsDot(){
         fail("FuncParamsDot","FuncParamsDot");
         rollback(bck->lst);
     }
-    return 1;
+    return FuncParamsDot_node;
 }
 past analyse_ConstDef(){
     list *bck;
@@ -1609,7 +1611,7 @@ past analyse_UnaryExp(){
         return UnaryExp_node;
     }
     else if(tok == Y_SUB || tok == Y_NOT || tok == Y_ADD){
-        UnaryExp_node = newAstNode(BINARY_OPERATOR,NULL,NULL);
+        UnaryExp_node = newAstNode(UNARY_OPERATOR,NULL,NULL);
         UnaryExp_node->svalue = pot->s;
         pullin("UnaryExp:Y_SUB");
         advance();
